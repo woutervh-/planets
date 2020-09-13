@@ -11,7 +11,7 @@ namespace SQT
             public float desiredScreenSpaceLength;
             public Material material;
             public GameObject gameObject;
-            public PerlinDisplacementCPU meshDisplacement;
+            public VerticesModifier verticesModifier;
         }
 
         public class Branch

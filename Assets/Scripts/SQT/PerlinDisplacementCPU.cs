@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SQT
 {
-    public class PerlinDisplacementCPU
+    public class PerlinDisplacementCPU : VerticesModifier
     {
         public int seed = 0;
         public float strength = 0.1f;
@@ -30,7 +30,7 @@ namespace SQT
                     node.positions[i] += node.normals[i] * sample.value;
                     node.normals[i] = (node.normals[i] - sample.derivative).normalized;
                 }
-            }, cancellation);
+            }, cancellation.Token);
         }
 
         Noise.Perlin.PerlinSample GetSample(Vector3 position, float frequency)

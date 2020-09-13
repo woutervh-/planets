@@ -182,7 +182,7 @@ namespace SQT
         {
             MeshHelper.GenerateVertices(context, this, out positions, out normals);
 
-            await context.constants.meshDisplacement.ModifyVertices(context, this, meshRequestCancellation);
+            await context.constants.verticesModifier.ModifyVertices(context, this, meshRequestCancellation);
 
             if (!meshRequestCancellation.Token.IsCancellationRequested)
             {

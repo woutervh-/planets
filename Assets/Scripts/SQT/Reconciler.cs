@@ -23,7 +23,8 @@ namespace SQT
             Node leaf = DeepSplit(context, reconciliationData, root);
             marked.Add(leaf);
 
-            context.constants.plugins.ModifyMarkedSet(context, marked, leaf);
+            // Mark the eight surrounding quads of the leaf.
+            MarkEightNeighbors(context, marked, leaf);
 
             // Mark nodes to create a balanced tree (max 2:1 split between neighbors).
             MarkBalancedNodes(context, marked);
@@ -135,6 +136,26 @@ namespace SQT
             {
                 marked.Add(root);
             }
+        }
+
+        static void MarkEightNeighbors(Context context, HashSet<Node> marked, Node leaf)
+        {
+            Node n1 = EnsureNeighbor(context, leaf, 0);
+            Node n2 = EnsureNeighbor(context, leaf, 1);
+            Node n3 = EnsureNeighbor(context, leaf, 2);
+            Node n4 = EnsureNeighbor(context, leaf, 3);
+            Node n5 = EnsureNeighbor(context, n1, 3);
+            Node n6 = EnsureNeighbor(context, n2, 2);
+            Node n7 = EnsureNeighbor(context, n3, 0);
+            Node n8 = EnsureNeighbor(context, n4, 1);
+            marked.Add(n1);
+            marked.Add(n2);
+            marked.Add(n3);
+            marked.Add(n4);
+            marked.Add(n5);
+            marked.Add(n6);
+            marked.Add(n7);
+            marked.Add(n8);
         }
 
         static void MarkBalancedNodes(Context context, HashSet<Node> marked)

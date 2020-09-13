@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SQT
 {
-    public class SQTManager : MonoBehaviour
+    public class Manager : MonoBehaviour
     {
         public GameObject player;
         [Range(0f, 16f)]
@@ -19,6 +19,7 @@ namespace SQT
 #endif
 
         bool dirty;
+        Camera playerCamera;
         Context context;
 
         void OnEnable()
@@ -42,6 +43,29 @@ namespace SQT
             dirty = true;
         }
 
+        void Update()
+        {
+            if (dirty)
+            {
+                dirty = false;
+                DoCleanup();
+                DoUpdate();
+            }
+
+            if (playerCamera == null || playerCamera.gameObject != player)
+            {
+                playerCamera = player.GetComponent<Camera>();
+            }
+
+            ReconciliationData reconciliationData = ReconciliationData.GetData(context, playerCamera);
+            if (reconciliationData == null)
+            {
+                return;
+            }
+
+            Reconciler.Reconcile(context, reconciliationData);
+        }
+
         void DoUpdate()
         {
             Context.Constants constants = new Context.Constants
@@ -51,7 +75,7 @@ namespace SQT
                 material = material,
                 maxDepth = maxDepth,
                 resolution = resolution * 2 - 1, // We can only use odd resolutions.,
-                meshDisplacement = new PerlinDisplacementCPU()
+                verticesModifier = new PerlinDisplacementCPU()
             };
 
             Context.Branch[] branches = Context.Branch.GetFromConstants(constants);
