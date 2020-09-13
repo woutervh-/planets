@@ -1,4 +1,4 @@
-Shader "Lit" {
+Shader "SQT/Lit" {
     Properties {
         [MainColor] _BaseColor ("Color", Color) = (0.5, 0.5, 0.5, 1.0)
         [MainTexture] _BaseMap ("Albedo", 2D) = "white" {}
@@ -26,7 +26,7 @@ Shader "Lit" {
 
     SubShader {
         Pass {
-            Name "ForwardLit"
+            Name "Lit"
 
             HLSLPROGRAM
 
@@ -51,7 +51,7 @@ Shader "Lit" {
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
-            #include "./Noise.hlsl"
+            #include "../Noise.hlsl"
 
             Varyings Vertex(Attributes input) {
                 #if defined(_VERTEX_DISPLACEMENT) || defined(_PER_FRAGMENT_NORMALS)
