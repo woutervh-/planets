@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace SQT
 {
-    public class PerlinDisplacementCPU : VerticesModifier
+    public class PerlinDisplacementCPU : MeshModifier
     {
-        public int seed = 0;
-        public float strength = 0.1f;
-        public float frequency = 1f;
-        public float lacunarity = 2f;
-        public float persistence = 0.5f;
-        public int octaves = 8;
+        public float strength;
+        public float frequency;
+        public float lacunarity;
+        public float persistence;
+        public int octaves;
 
         Noise.Perlin perlin;
+        Texture2D gradientsTexture;
+        Texture2D permutationTexture;
 
-        public PerlinDisplacementCPU()
+        public PerlinDisplacementCPU(int seed)
         {
             perlin = new Noise.Perlin(seed);
+            gradientsTexture = Noise.PerlinTextureGenerator.CreateGradientsTexture(perlin);
+            permutationTexture = Noise.PerlinTextureGenerator.CreatePermutationTexture(perlin);
         }
 
         public Task ModifyVertices(SQT.Context context, SQT.Node node, CancellationTokenSource cancellation)
@@ -31,6 +34,23 @@ namespace SQT
                     node.normals[i] = (node.normals[i] - sample.derivative).normalized;
                 }
             }, cancellation.Token);
+        }
+
+        public void ModifyMaterial(Material material)
+        {
+            material.SetTexture("_Gradients2D", gradientsTexture);
+            material.SetTexture("_Permutation2D", permutationTexture);
+            material.SetFloat("_Strength", strength);
+            material.SetFloat("_Frequency", frequency);
+            material.SetFloat("_Lacunarity", lacunarity);
+            material.SetFloat("_Persistence", persistence);
+            material.SetInt("_Octaves", octaves);
+        }
+
+        public void Destroy()
+        {
+            UnityEngine.Object.Destroy(gradientsTexture);
+            UnityEngine.Object.Destroy(permutationTexture);
         }
 
         Noise.Perlin.PerlinSample GetSample(Vector3 position, float frequency)

@@ -11,7 +11,7 @@ namespace SQT
             public float desiredScreenSpaceLength;
             public Material material;
             public GameObject gameObject;
-            public VerticesModifier verticesModifier;
+            public MeshModifier verticesModifier;
         }
 
         public class Branch

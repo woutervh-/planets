@@ -18,6 +18,13 @@ namespace SQT
         public bool debug;
 #endif
 
+        public int seed = 0;
+        public float strength = 0.1f;
+        public float frequency = 1f;
+        public float lacunarity = 2f;
+        public float persistence = 0.5f;
+        public int octaves = 8;
+
         bool dirty;
         Camera playerCamera;
         Context context;
@@ -68,6 +75,17 @@ namespace SQT
 
         void DoUpdate()
         {
+            MeshModifier verticesModifier = new PerlinDisplacementCPU(seed)
+            {
+                strength = strength,
+                frequency = frequency,
+                lacunarity = lacunarity,
+                persistence = persistence,
+                octaves = octaves
+            };
+
+            verticesModifier.ModifyMaterial(material);
+
             Context.Constants constants = new Context.Constants
             {
                 desiredScreenSpaceLength = desiredScreenSpaceLength,
@@ -75,7 +93,7 @@ namespace SQT
                 material = material,
                 maxDepth = maxDepth,
                 resolution = resolution * 2 - 1, // We can only use odd resolutions.,
-                verticesModifier = new PerlinDisplacementCPU()
+                verticesModifier = verticesModifier
             };
 
             Context.Branch[] branches = Context.Branch.GetFromConstants(constants);

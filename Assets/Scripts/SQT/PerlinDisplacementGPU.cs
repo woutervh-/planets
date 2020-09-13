@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace SQT
 {
-    public class PerlinDisplacementGPU : VerticesModifier
+    public class PerlinDisplacementGPU : MeshModifier
     {
         public int seed = 0;
         public float strength = 0.1f;
@@ -29,22 +29,6 @@ namespace SQT
             gradientsTexture = Noise.PerlinTextureGenerator.CreateGradientsTexture(perlin);
             permutationTexture = Noise.PerlinTextureGenerator.CreatePermutationTexture(perlin);
             computeKernel = computeShader.FindKernel("GenerateMesh");
-        }
-
-        public void Destroy()
-        {
-            if (positionBuffer != null)
-            {
-                positionBuffer.Release();
-                positionBuffer = null;
-            }
-            if (normalBuffer != null)
-            {
-                normalBuffer.Release();
-                normalBuffer = null;
-            }
-            UnityEngine.Object.Destroy(gradientsTexture);
-            UnityEngine.Object.Destroy(permutationTexture);
         }
 
         public async Task ModifyVertices(Context context, Node node, CancellationTokenSource cancellation)
@@ -102,6 +86,33 @@ namespace SQT
 
             await positionsTask;
             await normalsTask;
+        }
+
+        public void ModifyMaterial(Material material)
+        {
+            material.SetTexture("_Gradients2D", gradientsTexture);
+            material.SetTexture("_Permutation2D", permutationTexture);
+            material.SetFloat("_Strength", strength);
+            material.SetFloat("_Frequency", frequency);
+            material.SetFloat("_Lacunarity", lacunarity);
+            material.SetFloat("_Persistence", persistence);
+            material.SetInt("_Octaves", octaves);
+        }
+
+        public void Destroy()
+        {
+            if (positionBuffer != null)
+            {
+                positionBuffer.Release();
+                positionBuffer = null;
+            }
+            if (normalBuffer != null)
+            {
+                normalBuffer.Release();
+                normalBuffer = null;
+            }
+            UnityEngine.Object.Destroy(gradientsTexture);
+            UnityEngine.Object.Destroy(permutationTexture);
         }
     }
 }

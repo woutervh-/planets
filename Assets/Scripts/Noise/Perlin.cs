@@ -98,8 +98,6 @@ namespace Noise
 
         public Perlin(int seed)
         {
-            Random.InitState(seed);
-
             int[] permutation = new int[Perlin.SIZE];
             for (int i = 0; i < Perlin.SIZE; i++)
             {
