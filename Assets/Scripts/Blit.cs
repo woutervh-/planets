@@ -62,24 +62,6 @@ public class Blit : ScriptableRendererFeature
             RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             opaqueDesc.depthBufferBits = 0;
 
-            // cmd.SetRenderTarget(
-            //     cameraTarget,
-            //     RenderBufferLoadAction.Load,
-            //     RenderBufferStoreAction.Store
-            // );
-
-            // cmd.SetGlobalTexture("_BlitTex", RenderTargetHandle.CameraTarget.Identifier());
-            // cmd.SetGlobalTexture("_BlitTex", renderingData.cameraData.targetTexture);
-            // RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor
-
-            // cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget.id);
-            // cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            // cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-            // cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, settings.blitMaterial);
-            // cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
-
-            // Blit(cmd, RenderTargetHandle.CameraTarget.Identifier(), RenderTargetHandle.CameraTarget.Identifier());
-
             // Can't read and write to same color target, create a temp render target to blit. 
             if (destination == RenderTargetHandle.CameraTarget)
             {
