@@ -16,18 +16,18 @@ Shader "Atmosphere" {
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-            #pragma vertex VertFullscreenMesh
+            #pragma vertex Vert
             #pragma fragment Frag
 
             // TEXTURE2D_X(_CameraColorTexture);
-            TEXTURE2D_X(_BlitTex);
+            TEXTURE2D(_BlitTex);
             float _Blend;
 
             float4 Frag(Varyings input) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float3 color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;
-                // float luminance = dot(color, float3(0.2126729, 0.715122, 0.0721750));
-                // color = lerp(color, luminance.xxx, _Blend.xxx);
+                float3 color = SAMPLE_TEXTURE2D(_BlitTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;
+                float luminance = dot(color, float3(0.2126729, 0.715122, 0.0721750));
+                color = lerp(color, luminance.xxx, _Blend.xxx);
 
                 // return float4(0.2126729, 0.715122, 0.0721750, 1);
 
