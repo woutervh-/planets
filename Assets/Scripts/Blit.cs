@@ -78,7 +78,6 @@ public class Blit : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        /// Cleanup any allocated resources that were created during the execution of this render pass.
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (destination == RenderTargetHandle.CameraTarget)
