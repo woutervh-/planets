@@ -14,6 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings: {blitMaterial: {fileID: 2100000, guid: 40e00f47a6ae2a04d83f49a149021fa8, type: 2}}
+--- !u!114 &-7846164652106576737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19cbfc8847e66748a9cdcf0a8ce5e8d, type: 3}
+  m_Name: Atmosphere precomputed
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    Event: 300
+    atmosphereMaterial: {fileID: 0}
+    atmosphereMaterialPassIndex: -1
+    destination: 0
+    textureId: _AtmospherePassTexture
 --- !u!114 &-7818304989066292178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43,7 +62,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: 7939585488401081710}
-  m_RendererFeatureMap: 6e25fe9bef122f6e
+  - {fileID: 1222621180628131501}
+  m_RendererFeatureMap: 6e25fe9bef122f6ead5e356e7c9ff710
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -65,6 +85,25 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+--- !u!114 &1222621180628131501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 396907d2ab2d66b4d904af18666dac24, type: 3}
+  m_Name: Atmosphere
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    Event: 550
+    atmosphereMaterial: {fileID: 0}
+    atmosphereMaterialPassIndex: -1
+    destination: 0
+    textureId: _AtmospherePassTexture
 --- !u!114 &7939585488401081710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,7 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39ebd7c6aacd4894b8fba996b601a977, type: 3}
   m_Name: Atmosphere
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
     Event: 550
     blitMaterial: {fileID: 2100000, guid: 40e00f47a6ae2a04d83f49a149021fa8, type: 2}

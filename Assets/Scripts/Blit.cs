@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-// using UnityEngine.Experimental.Rendering;
 
 public class Blit : ScriptableRendererFeature
 {
@@ -36,7 +35,6 @@ public class Blit : ScriptableRendererFeature
 
         private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        private RenderTargetIdentifier depth { get; set; }
 
         RenderTargetHandle temporaryColorTexture;
         string profilerTag;
@@ -50,11 +48,10 @@ public class Blit : ScriptableRendererFeature
             temporaryColorTexture.Init("_TemporaryColorTexture");
         }
 
-        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, RenderTargetIdentifier depth)
+        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination)
         {
             this.source = source;
             this.destination = destination;
-            this.depth = depth;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -62,12 +59,11 @@ public class Blit : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
             RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
-            opaqueDesc.depthBufferBits = 32;
+            opaqueDesc.depthBufferBits = 0;
 
             // Can't read and write to same color target, create a temp render target to blit. 
             if (destination == RenderTargetHandle.CameraTarget)
             {
-                // cmd.SetGlobalTexture("_CameraDepthAttachment", depth);
                 cmd.GetTemporaryRT(temporaryColorTexture.id, opaqueDesc, filterMode);
                 Blit(cmd, source, temporaryColorTexture.Identifier(), blitMaterial, blitShaderPassIndex);
                 Blit(cmd, temporaryColorTexture.Identifier(), source);
@@ -111,7 +107,6 @@ public class Blit : ScriptableRendererFeature
         }
 
         var src = renderer.cameraColorTarget;
-        var depth = renderer.cameraDepth;
         var dest = (settings.destination == Target.Color) ? RenderTargetHandle.CameraTarget : renderTextureHandle;
 
         if (settings.blitMaterial == null)
@@ -120,7 +115,7 @@ public class Blit : ScriptableRendererFeature
             return;
         }
 
-        blitPass.Setup(src, dest, depth);
+        blitPass.Setup(src, dest);
         renderer.EnqueuePass(blitPass);
     }
 }
