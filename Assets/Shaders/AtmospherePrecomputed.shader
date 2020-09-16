@@ -46,8 +46,8 @@ Shader "Atmosphere Precomputed" {
                 }
                 
                 float thc = sqrt(r2 - d2);
-                t0 = max(0, tca - thc);
-                t1 = max(0, tca + thc);
+                t0 = tca - thc;
+                t1 = tca + thc;
                 
                 return true;
             }
@@ -79,15 +79,23 @@ Shader "Atmosphere Precomputed" {
                 float stepSize = rayLength / (32 - 1);
                 float3 inScatteredLight = 0;
                 for (int i = 0; i < 32; i++) {
+                    float pointToPlanet0;
+                    float pointToPlanet1;
+                    raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _PlanetRadius, pointToPlanet0, pointToPlanet1);
+
                     float pointToAtmosphere0;
                     float pointToAtmosphere1;
                     raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _AtmosphereRadius, pointToAtmosphere0, pointToAtmosphere1);
+
+                    pointToAtmosphere0 = max(0, pointToAtmosphere0);
+                    pointToAtmosphere1 = max(0, pointToAtmosphere1);
                     float sunRayLength = pointToAtmosphere1 - pointToAtmosphere0;
                     // float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection, sunRayLength);
                     // float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+                    // TODO: account for hitting the planet.
                     float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection);
                     float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection);
-                    float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatter);
+                    float3 transmittance = pointToPlanet0 > 0 ? 0 : exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatter);
                     float localDensity = densityAtPoint(inScatterPoint);
 
                     inScatteredLight += localDensity * transmittance * scatter * stepSize;
@@ -130,9 +138,17 @@ Shader "Atmosphere Precomputed" {
                 float3 rayOrigin = _WorldSpaceCameraPos;
                 float3 rayDirection = normalize(input.viewVector);
 
+                // float cameraToPlanet0;
+                // float cameraToPlanet1;
+                // raySphereIntersect(rayOrigin, rayDirection, _PlanetCenter, _PlanetRadius, cameraToPlanet0, cameraToPlanet1);
+                // depth = min(depth, cameraToPlanet0);
+
                 float cameraToAtmosphere0;
                 float cameraToAtmosphere1;
                 bool atmosphereHit = raySphereIntersect(rayOrigin, rayDirection, _PlanetCenter, _AtmosphereRadius, cameraToAtmosphere0, cameraToAtmosphere1);
+                cameraToAtmosphere0 = max(0, cameraToAtmosphere0);
+                cameraToAtmosphere1 = max(0, cameraToAtmosphere1);
+
                 float rayLength = min(cameraToAtmosphere1 - cameraToAtmosphere0, depth - cameraToAtmosphere0);
 
                 if (atmosphereHit && rayLength > 0) {

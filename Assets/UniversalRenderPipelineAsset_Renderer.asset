@@ -106,7 +106,7 @@ MonoBehaviour:
     textureId: _AtmospherePassTexture
     atmosphereParameters:
       planetCenter: {x: 0, y: 0, z: 0}
-      planetRadius: 1.15
+      planetRadius: 1.18
       atmosphereRadius: 1.36
       atmosphereDensityFalloff: 4
       atmosphereWavelengths: {x: 700, y: 530, z: 440}
