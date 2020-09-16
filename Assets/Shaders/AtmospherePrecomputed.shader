@@ -1,11 +1,12 @@
-Shader "Atmosphere" {
+Shader "Atmosphere Precomputed" {
     Properties {
-        _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
-        _PlanetRadius ("Planet radius", Float) = 0.5
-        _AtmosphereRadius ("Atmosphere radius", Float) = 1
-        _AtmosphereDensityFalloff ("Atmosphere density falloff", Float) = 1
-        _AtmosphereWavelengths ("Atmosphere wavelengths", Vector) = (700, 530, 440, 1)
-        _AtmosphereSunIntensity ("Atmosphere sun intensity", Float) = 10
+        [HideInInspector] _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
+        [HideInInspector] _PlanetRadius ("Planet radius", Float) = 0.5
+        [HideInInspector] _AtmosphereRadius ("Atmosphere radius", Float) = 1
+        [HideInInspector] _AtmosphereDensityFalloff ("Atmosphere density falloff", Float) = 1
+        [HideInInspector] _AtmosphereWavelengths ("Atmosphere wavelengths", Vector) = (700, 530, 440, 1)
+        [HideInInspector] _AtmosphereSunIntensity ("Atmosphere sun intensity", Float) = 10
+        [HideInInspector] _OpticalDepthTexture ("Optical depth texture", 2D) = "white" {}
     }
 
     SubShader {
@@ -25,6 +26,7 @@ Shader "Atmosphere" {
 
             sampler2D _CameraColorTexture;
             sampler2D _CameraDepthTexture;
+            sampler2D _OpticalDepthTexture;
 
             float3 _PlanetCenter;
             float _PlanetRadius;
@@ -61,18 +63,11 @@ Shader "Atmosphere" {
                 return localDensity;
             }
 
-            float opticalDepth(float3 rayOrigin, float3 rayDirection, float rayLength) {
-                float3 densitySamplePoint = rayOrigin;
-                float stepSize = rayLength / (32 - 1);
-                float opticalDepth = 0;
-
-                for (int i = 0; i < 32; i++) {
-                    float localDensity = densityAtPoint(densitySamplePoint);
-                    opticalDepth += localDensity * stepSize;
-                    densitySamplePoint += rayDirection * stepSize;
-                }
-
-                return opticalDepth;
+            float opticalDepth(float3 rayOrigin, float3 rayDirection) {
+                float height = length(_PlanetCenter - rayOrigin) - _PlanetRadius;
+                float height01 = height / (_AtmosphereRadius - _PlanetRadius);
+                float angle01 = dot(normalize(_PlanetCenter - rayOrigin), rayDirection) * 0.5 + 0.5;
+                return tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).r;
             }
 
             float3 calculateLight(float3 rayOrigin, float3 rayDirection, float rayLength) {
@@ -88,8 +83,10 @@ Shader "Atmosphere" {
                     float pointToAtmosphere1;
                     raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _AtmosphereRadius, pointToAtmosphere0, pointToAtmosphere1);
                     float sunRayLength = pointToAtmosphere1 - pointToAtmosphere0;
-                    float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection, sunRayLength);
-                    float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+                    // float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection, sunRayLength);
+                    // float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+                    float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection);
+                    float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection);
                     float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatter);
                     float localDensity = densityAtPoint(inScatterPoint);
 

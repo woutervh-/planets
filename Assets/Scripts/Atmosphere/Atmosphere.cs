@@ -7,6 +7,18 @@ namespace Atmosphere
     public class Atmosphere : ScriptableRendererFeature
     {
         [System.Serializable]
+        public class AtmosphereParameters
+        {
+            public Vector3 planetCenter = Vector3.zero;
+            public float planetRadius = 0.5f;
+            public float atmosphereRadius = 1f;
+            public float atmosphereDensityFalloff = 1f;
+            public Vector3 atmosphereWavelengths = new Vector3(700f, 530f, 440f);
+            public float atmosphereWavelengthsScatter = 1f;
+            public float atmosphereSunIntensity = 10f;
+        }
+
+        [System.Serializable]
         public class AtmosphereSettings
         {
             public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
@@ -15,6 +27,8 @@ namespace Atmosphere
             public int atmosphereMaterialPassIndex = -1;
             public Target destination = Target.Color;
             public string textureId = "_AtmospherePassTexture";
+
+            public AtmosphereParameters atmosphereParameters = new AtmosphereParameters();
         }
 
         public enum Target
@@ -33,6 +47,7 @@ namespace Atmosphere
 
             public Material atmosphereMaterial = null;
             public int atmosphereShaderPassIndex = 0;
+            public AtmosphereParameters atmosphereParameters;
             public FilterMode filterMode { get; set; }
 
             private RenderTargetIdentifier source { get; set; }
@@ -41,11 +56,12 @@ namespace Atmosphere
             RenderTargetHandle temporaryColorTexture;
             string profilerTag;
 
-            public AtmospherePass(RenderPassEvent renderPassEvent, Material atmosphereMaterial, int atmosphereShaderPassIndex, string tag)
+            public AtmospherePass(RenderPassEvent renderPassEvent, Material atmosphereMaterial, int atmosphereShaderPassIndex, AtmosphereParameters atmosphereParameters, string tag)
             {
                 this.renderPassEvent = renderPassEvent;
                 this.atmosphereMaterial = atmosphereMaterial;
                 this.atmosphereShaderPassIndex = atmosphereShaderPassIndex;
+                this.atmosphereParameters = atmosphereParameters;
                 profilerTag = tag;
                 temporaryColorTexture.Init("_TemporaryColorTexture");
             }
@@ -67,6 +83,12 @@ namespace Atmosphere
                 if (destination == RenderTargetHandle.CameraTarget)
                 {
                     cmd.GetTemporaryRT(temporaryColorTexture.id, opaqueDesc, filterMode);
+                    atmosphereMaterial.SetVector("_PlanetCenter", atmosphereParameters.planetCenter);
+                    atmosphereMaterial.SetFloat("_PlanetRadius", atmosphereParameters.planetRadius);
+                    atmosphereMaterial.SetFloat("_AtmosphereRadius", atmosphereParameters.atmosphereRadius);
+                    atmosphereMaterial.SetFloat("_AtmosphereDensityFalloff", atmosphereParameters.atmosphereDensityFalloff);
+                    atmosphereMaterial.SetVector("_AtmosphereWavelengths", new Vector4(atmosphereParameters.atmosphereWavelengths.x, atmosphereParameters.atmosphereWavelengths.y, atmosphereParameters.atmosphereWavelengths.z, atmosphereParameters.atmosphereWavelengthsScatter));
+                    atmosphereMaterial.SetFloat("_AtmosphereSunIntensity", atmosphereParameters.atmosphereSunIntensity);
                     Blit(cmd, source, temporaryColorTexture.Identifier(), atmosphereMaterial, atmosphereShaderPassIndex);
                     Blit(cmd, temporaryColorTexture.Identifier(), source);
                 }
@@ -96,11 +118,11 @@ namespace Atmosphere
         {
             var passIndex = settings.atmosphereMaterial != null ? settings.atmosphereMaterial.passCount - 1 : 1;
             settings.atmosphereMaterialPassIndex = Mathf.Clamp(settings.atmosphereMaterialPassIndex, -1, passIndex);
-            atmospherePass = new AtmospherePass(settings.Event, settings.atmosphereMaterial, settings.atmosphereMaterialPassIndex, name);
+            atmospherePass = new AtmospherePass(settings.Event, settings.atmosphereMaterial, settings.atmosphereMaterialPassIndex, settings.atmosphereParameters, name);
             renderTextureHandle.Init(settings.textureId);
 
-            Texture2D opticalDepth = new Texture2D(256, 256);
-
+            Texture2D opticalDepthTexture = AtmosphereTextureGenerator.CreateOpticalDepthTexture(settings.atmosphereParameters.planetRadius, settings.atmosphereParameters.atmosphereRadius, settings.atmosphereParameters.atmosphereDensityFalloff);
+            settings.atmosphereMaterial.SetTexture("_OpticalDepthTexture", opticalDepthTexture);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

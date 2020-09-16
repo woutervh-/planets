@@ -100,10 +100,18 @@ MonoBehaviour:
   m_Active: 1
   settings:
     Event: 550
-    atmosphereMaterial: {fileID: 0}
+    atmosphereMaterial: {fileID: 2100000, guid: 1eae51edc8d7d7244975a2bbb96a2c3a, type: 2}
     atmosphereMaterialPassIndex: -1
     destination: 0
     textureId: _AtmospherePassTexture
+    atmosphereParameters:
+      planetCenter: {x: 0, y: 0, z: 0}
+      planetRadius: 1.15
+      atmosphereRadius: 1.36
+      atmosphereDensityFalloff: 4
+      atmosphereWavelengths: {x: 700, y: 530, z: 440}
+      atmosphereWavelengthsScatter: 5
+      atmosphereSunIntensity: 10
 --- !u!114 &7939585488401081710
 MonoBehaviour:
   m_ObjectHideFlags: 0

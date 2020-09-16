@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-412632320327329849
+--- !u!114 &-9169398186206870643
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,9 +20,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Lit White
-  m_Shader: {fileID: 4800000, guid: b00fa17126c06e740b5cc5db8a601faf, type: 3}
-  m_ShaderKeywords: _PER_FRAGMENT_NORMALS
+  m_Name: Atmosphere Precomputed
+  m_Shader: {fileID: 4800000, guid: 6b6b994ad0dd59d49b57b56981982ea9, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -44,10 +44,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _Gradients2D:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -60,7 +56,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _Permutation2D:
+    - _OpticalDepthTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -70,42 +66,35 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaClip: 0
+    - _AtmosphereDensityFalloff: 4
+    - _AtmosphereRadius: 1.36
+    - _AtmosphereSunIntensity: 10
     - _Blend: 0
     - _BumpScale: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _DstBlend: 0
     - _EnvironmentReflections: 1
-    - _FiniteDifferenceNormals: 0
-    - _FiniteDifferenceScale: 1
-    - _Frequency: 0.6
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Lacunarity: 2
-    - _MapScale: 1
     - _Metallic: 0
-    - _NormalMap: 0
     - _OcclusionStrength: 1
-    - _Octaves: 8
-    - _PerFragmentHeight: 0
-    - _PerFragmentNormals: 1
-    - _Persistence: 0.5
+    - _PlanetRadius: 1.15
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 0.82
     - _Surface: 0
-    - _TriplanarMapping: 0
-    - _VertexDisplacement: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.9622642, g: 0.17603473, b: 0.022694906, a: 1}
+    - _AtmosphereWavelengths: {r: 700, g: 530, b: 440, a: 5}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PlanetCenter: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []
