@@ -54,11 +54,8 @@ Shader "Atmosphere" {
                 return 3.0 / (16.0 * PI) * (1.0 + cosTheta * cosTheta);
             }
 
-            float densityAtPoint(float3 densitySamplePoint) {
-                float heightAboveSurface = length(densitySamplePoint - _PlanetCenter) - _PlanetRadius;
-                float height01 = heightAboveSurface / (_AtmosphereRadius - _PlanetRadius);
-                float localDensity = exp(-height01 * _AtmosphereDensityFalloff) * (1 - height01);
-                return localDensity;
+            float densityAtHeight(float height) {
+                return exp(-height / _AtmosphereRadius);
             }
 
             float opticalDepth(float3 rayOrigin, float3 rayDirection, float rayLength) {
@@ -67,7 +64,11 @@ Shader "Atmosphere" {
                 float opticalDepth = 0;
 
                 for (int i = 0; i < 32; i++) {
-                    float localDensity = densityAtPoint(densitySamplePoint);
+                    float height = distance(densitySamplePoint, _PlanetCenter);
+                    if (height < _PlanetRadius) {
+                        return 1.#INF;
+                    }
+                    float localDensity = densityAtHeight(height);
                     opticalDepth += localDensity * stepSize;
                     densitySamplePoint += rayDirection * stepSize;
                 }
@@ -83,19 +84,24 @@ Shader "Atmosphere" {
                 float3 inScatterPoint = rayOrigin;
                 float stepSize = rayLength / (32 - 1);
                 float3 inScatteredLight = 0;
+                float viewRayOpticalDepth = 0;
                 for (int i = 0; i < 32; i++) {
+                    float height = distance(inScatterPoint, _PlanetCenter);
+                    float localDensity = densityAtHeight(inScatterPoint);
+                    viewRayOpticalDepth += localDensity * stepSize;
+
                     float pointToAtmosphere0;
                     float pointToAtmosphere1;
                     raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _AtmosphereRadius, pointToAtmosphere0, pointToAtmosphere1);
                     pointToAtmosphere0 = max(0, pointToAtmosphere0);
                     pointToAtmosphere1 = max(0, pointToAtmosphere1);
+
                     float sunRayLength = pointToAtmosphere1 - pointToAtmosphere0;
                     float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection, sunRayLength);
-                    float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
-                    float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatter);
-                    float localDensity = densityAtPoint(inScatterPoint);
+                    float3 tau = scatter * (sunRayOpticalDepth + viewRayOpticalDepth);
+                    float3 transmittance = exp(-tau);
+                    inScatteredLight += transmittance * scatter * localDensity * stepSize;
 
-                    inScatteredLight += localDensity * transmittance * scatter * stepSize;
                     inScatterPoint += rayDirection * stepSize;
                 }
 
