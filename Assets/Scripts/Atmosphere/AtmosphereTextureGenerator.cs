@@ -22,8 +22,8 @@ namespace Atmosphere
             }
 
             float thc = Mathf.Sqrt(r2 - d2);
-            t0 = Mathf.Max(0, tca - thc);
-            t1 = Mathf.Max(0, tca + thc);
+            t0 = tca - thc;
+            t1 = tca + thc;
 
             return true;
         }
@@ -52,9 +52,9 @@ namespace Atmosphere
         //     return opticalDepth;
         // }
 
-        private static float DensityAtPoint(float height01, float atmosphereDensityFalloff)
+        private static float DensityAtHeight(float height, float atmosphereDensityFalloff, float atmosphereRadius)
         {
-            return Mathf.Exp(-height01 * atmosphereDensityFalloff) * (1 - height01);
+            return Mathf.Exp(-height * atmosphereDensityFalloff / atmosphereRadius);
         }
 
         private static float CalculateOpticalDepth(float height01, float angle01, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloff)
@@ -62,12 +62,15 @@ namespace Atmosphere
             // height: 0 at planet surface, 1 on atmosphere shell.
             // angle: 0 when looking up from planet, 1 when looking down.
             Vector3 rayOrigin = Vector3.up * planetRadius + Vector3.up * atmosphereRadius * height01;
-            Quaternion rotation = Quaternion.AngleAxis(180f * angle01, Vector3.right);
-            Vector3 rayDirection = rotation * Vector3.up;
+            float theta = Mathf.Acos((angle01 - 0.5f) * 2f);
+            Quaternion rotation = Quaternion.AngleAxis(theta / Mathf.PI * 180f, Vector3.right);
+            Vector3 rayDirection = rotation * Vector3.down;
 
             float pointToAtmosphere0;
             float pointToAtmosphere1;
-            RaySphereIntersect(rayOrigin, rayDirection, Vector3.zero, planetRadius + atmosphereRadius, out pointToAtmosphere0, out pointToAtmosphere1);
+            RaySphereIntersect(rayOrigin, rayDirection, Vector3.zero, atmosphereRadius, out pointToAtmosphere0, out pointToAtmosphere1);
+            pointToAtmosphere0 = Mathf.Max(0, pointToAtmosphere0);
+            pointToAtmosphere1 = Mathf.Max(0, pointToAtmosphere1);
             float rayLength = pointToAtmosphere1 - pointToAtmosphere0;
 
             Vector3 densitySamplePoint = rayOrigin;
@@ -75,7 +78,11 @@ namespace Atmosphere
             float opticalDepth = 0f;
             for (int i = 0; i < NUM_PRECOMPUTE_STEPS; i++)
             {
-                float localDensity = DensityAtPoint(height01, atmosphereDensityFalloff);
+                float height = densitySamplePoint.magnitude;
+                if (height < planetRadius) {
+                    return Mathf.Infinity;
+                }
+                float localDensity = DensityAtHeight(height, atmosphereDensityFalloff, atmosphereRadius);
                 opticalDepth += localDensity * stepSize;
                 densitySamplePoint += rayDirection * stepSize;
             }
@@ -93,10 +100,10 @@ namespace Atmosphere
                 {
                     float angle01 = (float)x / (TEXTURE_RESOLUTION - 1);
                     float opticalDepth = CalculateOpticalDepth(height01, angle01, planetRadius, atmosphereRadius, atmosphereDensityFalloff);
-                    colors[x + y * 256] = new Color(opticalDepth, 0f, 0f);
+                    colors[x + y * TEXTURE_RESOLUTION] = new Color(opticalDepth, 0f, 0f);
                 }
             }
-            Texture2D texture = new Texture2D(256, 256, TextureFormat.RFloat, false, true);
+            Texture2D texture = new Texture2D(TEXTURE_RESOLUTION, TEXTURE_RESOLUTION, TextureFormat.RFloat, false, true);
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.SetPixels(colors);

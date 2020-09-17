@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 396907d2ab2d66b4d904af18666dac24, type: 3}
   m_Name: Atmosphere
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   settings:
     Event: 550
     atmosphereMaterial: {fileID: 2100000, guid: 1eae51edc8d7d7244975a2bbb96a2c3a, type: 2}
@@ -108,7 +108,7 @@ MonoBehaviour:
       planetCenter: {x: 0, y: 0, z: 0}
       planetRadius: 1.18
       atmosphereRadius: 1.36
-      atmosphereDensityFalloff: 4
+      atmosphereDensityFalloff: 2
       atmosphereWavelengths: {x: 700, y: 530, z: 440}
       atmosphereWavelengthsScatter: 5
       atmosphereSunIntensity: 10
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39ebd7c6aacd4894b8fba996b601a977, type: 3}
   m_Name: Atmosphere
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
     Event: 550
     blitMaterial: {fileID: 2100000, guid: 40e00f47a6ae2a04d83f49a149021fa8, type: 2}

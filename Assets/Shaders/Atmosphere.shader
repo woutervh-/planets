@@ -55,7 +55,7 @@ Shader "Atmosphere" {
             }
 
             float densityAtHeight(float height) {
-                return exp(-height / _AtmosphereRadius);
+                return exp(-height * _AtmosphereDensityFalloff / _AtmosphereRadius);
             }
 
             float opticalDepth(float3 rayOrigin, float3 rayDirection, float rayLength) {
@@ -87,7 +87,7 @@ Shader "Atmosphere" {
                 float viewRayOpticalDepth = 0;
                 for (int i = 0; i < 32; i++) {
                     float height = distance(inScatterPoint, _PlanetCenter);
-                    float localDensity = densityAtHeight(inScatterPoint);
+                    float localDensity = densityAtHeight(height);
                     viewRayOpticalDepth += localDensity * stepSize;
 
                     float pointToAtmosphere0;
