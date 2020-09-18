@@ -3,8 +3,10 @@ Shader "Atmosphere Precomputed" {
         [HideInInspector] _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
         [HideInInspector] _PlanetRadius ("Planet radius", Float) = 0.5
         [HideInInspector] _AtmosphereRadius ("Atmosphere radius", Float) = 1
-        [HideInInspector] _AtmosphereDensityFalloff ("Atmosphere density falloff", Float) = 1
-        [HideInInspector] _AtmosphereWavelengths ("Atmosphere wavelengths", Vector) = (700, 530, 440, 1)
+        [HideInInspector] _AtmosphereFalloffRayleigh ("Atmosphere falloff Rayleigh", Float) = 2
+        [HideInInspector] _AtmosphereFalloffMie ("Atmosphere falloff Mie", Float) = 0.25
+        [HideInInspector] _AtmosphereWavelengthsRayleigh ("Atmosphere wavelengths", Vector) = (700, 530, 440, 20)
+        [HideInInspector] _AtmosphereWavelengthsMie ("Atmosphere wavelengths", Vector) = (2800, 2800, 2800, 50)
         [HideInInspector] _AtmosphereSunIntensity ("Atmosphere sun intensity", Float) = 10
         [HideInInspector] _OpticalDepthTexture ("Optical depth texture", 2D) = "white" {}
     }
@@ -24,6 +26,8 @@ Shader "Atmosphere Precomputed" {
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #define VIEW_RAY_SAMPLES 64
+
             sampler2D _CameraColorTexture;
             sampler2D _CameraDepthTexture;
             sampler2D _OpticalDepthTexture;
@@ -31,8 +35,10 @@ Shader "Atmosphere Precomputed" {
             float3 _PlanetCenter;
             float _PlanetRadius;
             float _AtmosphereRadius;
-            float _AtmosphereDensityFalloff;
-            float4 _AtmosphereWavelengths;
+            float _AtmosphereFalloffRayleigh;
+            float _AtmosphereFalloffMie;
+            float4 _AtmosphereWavelengthsRayleigh;
+            float4 _AtmosphereWavelengthsMie;
             float _AtmosphereSunIntensity;
 
             bool raySphereIntersect(float3 rayOrigin, float3 rayDirection, float3 sphereCenter, float sphereRadius, out float t0, out float t1) {
@@ -56,46 +62,65 @@ Shader "Atmosphere Precomputed" {
                 return 3.0 / (16.0 * PI) * (1.0 + cosTheta * cosTheta);
             }
 
-            float densityAtHeight(float height) {
-                return exp(-height * _AtmosphereDensityFalloff / _AtmosphereRadius);
+            float phaseMie(float cosTheta) {
+                const float g = 0.75;
+                return (1.0 - g * g) / ((4.0 * PI) * pow(1.0 + g * g - 2.0 * g * cosTheta, 1.5));
             }
 
-            float opticalDepth(float3 rayOrigin, float3 rayDirection) {
+            float densityAtHeightRayleigh(float height) {
+                return exp(-height * _AtmosphereFalloffRayleigh / _AtmosphereRadius);
+            }
+
+            float densityAtHeightMie(float height) {
+                return exp(-height * _AtmosphereFalloffMie / _AtmosphereRadius);
+            }
+
+            void opticalDepth(float3 rayOrigin, float3 rayDirection, out float sunRayOpticalDepthRayleigh, out float sunRayOpticalDepthMie) {
                 float height = distance(rayOrigin, _PlanetCenter) - _PlanetRadius;
                 float height01 = height / _AtmosphereRadius;
                 float angle01 = dot(normalize(_PlanetCenter - rayOrigin), rayDirection) * 0.5 + 0.5;
-                return tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).r;
+                float2 opticalDepth = tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).rg;
+                sunRayOpticalDepthRayleigh = opticalDepth.r;
+                sunRayOpticalDepthMie = opticalDepth.g;
             }
 
             float3 calculateLight(float3 rayOrigin, float3 rayDirection, float rayLength) {
                 float3 sunDirection = TransformWorldToObject(normalize(_MainLightPosition.xyz));
                 float cosTheta = dot(sunDirection, rayDirection);
-                float3 scatter = pow(400 / _AtmosphereWavelengths.rgb, 4) * _AtmosphereWavelengths.w;
+                float3 scatterRayleigh = pow(400 / _AtmosphereWavelengthsRayleigh.rgb, 4) * _AtmosphereWavelengthsRayleigh.w;
+                float3 scatterMie = pow(400 / _AtmosphereWavelengthsMie.rgb, 4) * _AtmosphereWavelengthsMie.w;
 
                 float3 inScatterPoint = rayOrigin;
-                float stepSize = rayLength / (32 - 1);
-                float3 inScatteredLight = 0;
-                float viewRayOpticalDepth = 0;
-                for (int i = 0; i < 32; i++) {
+                float stepSize = rayLength / (VIEW_RAY_SAMPLES - 1);
+                float3 inScatteredLightRayleigh = 0;
+                float3 inScatteredLightMie = 0;
+                float viewRayOpticalDepthRayleigh = 0;
+                float viewRayOpticalDepthMie = 0;
+                for (int i = 0; i < VIEW_RAY_SAMPLES; i++) {
                     float height = distance(inScatterPoint, _PlanetCenter);
-                    float localDensity = densityAtHeight(height);
-                    viewRayOpticalDepth += localDensity * stepSize;
+                    float localDensityRayleigh = densityAtHeightRayleigh(height);
+                    float localDensityMie = densityAtHeightMie(height);
+                    viewRayOpticalDepthRayleigh += localDensityRayleigh * stepSize;
+                    viewRayOpticalDepthMie += localDensityMie * stepSize;
 
                     float pointToPlanet0 = 0;
                     float pointToPlanet1 = 0;
                     bool planetHit = raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _PlanetRadius, pointToPlanet0, pointToPlanet1);
 
                     if (!(pointToPlanet0 > 0.0 || pointToPlanet1 > 0.0)) {
-                        float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDirection);
-                        float3 tau = scatter * (sunRayOpticalDepth + viewRayOpticalDepth);
+                        float sunRayOpticalDepthRayleigh;
+                        float sunRayOpticalDepthMie;
+                        opticalDepth(inScatterPoint, sunDirection, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
+                        float3 tau = scatterRayleigh * (sunRayOpticalDepthRayleigh + viewRayOpticalDepthRayleigh) + scatterMie * (sunRayOpticalDepthMie + viewRayOpticalDepthMie);
                         float3 transmittance = exp(-tau);
-                        inScatteredLight += transmittance * scatter * localDensity * stepSize;
+                        inScatteredLightRayleigh += transmittance * localDensityRayleigh * stepSize;
+                        inScatteredLightMie += transmittance * localDensityMie * stepSize;
                     }
 
                     inScatterPoint += rayDirection * stepSize;
                 }
 
-                return _AtmosphereSunIntensity * inScatteredLight * phaseRayleigh(cosTheta);
+                return _AtmosphereSunIntensity * (scatterRayleigh * inScatteredLightRayleigh * phaseRayleigh(cosTheta) + scatterMie * inScatteredLightMie * phaseMie(cosTheta));
             }
 
             struct Attributes {
@@ -131,11 +156,6 @@ Shader "Atmosphere Precomputed" {
                 float3 rayOrigin = _WorldSpaceCameraPos;
                 float3 rayDirection = normalize(input.viewVector);
 
-                // float cameraToPlanet0;
-                // float cameraToPlanet1;
-                // raySphereIntersect(rayOrigin, rayDirection, _PlanetCenter, _PlanetRadius, cameraToPlanet0, cameraToPlanet1);
-                // depth = min(depth, cameraToPlanet0);
-
                 float cameraToAtmosphere0;
                 float cameraToAtmosphere1;
                 bool atmosphereHit = raySphereIntersect(rayOrigin, rayDirection, _PlanetCenter, _AtmosphereRadius, cameraToAtmosphere0, cameraToAtmosphere1);
@@ -145,9 +165,8 @@ Shader "Atmosphere Precomputed" {
                 float rayLength = min(cameraToAtmosphere1 - cameraToAtmosphere0, depth - cameraToAtmosphere0);
 
                 if (atmosphereHit && rayLength > 0) {
-                    const float epsilon = 0.0001;
-                    float3 pointInAtmosphere = rayOrigin + rayDirection * (cameraToAtmosphere0 + epsilon);
-                    float3 light = calculateLight(pointInAtmosphere, rayDirection, rayLength - epsilon * 2);
+                    float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
+                    float3 light = calculateLight(pointInAtmosphere, rayDirection, rayLength);
                     return float4(color * (1 - light) + light, 1);
                 }
 

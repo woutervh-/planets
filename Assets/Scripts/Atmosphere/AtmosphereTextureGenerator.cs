@@ -28,36 +28,17 @@ namespace Atmosphere
             return true;
         }
 
-        // private static float DensityAtPoint(Vector3 densitySamplePoint, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloff)
-        // {
-        //     float heightAboveSurface = densitySamplePoint.magnitude - planetRadius;
-        //     float height01 = heightAboveSurface / (atmosphereRadius - planetRadius);
-        //     float localDensity = Mathf.Exp(-height01 * atmosphereDensityFalloff) * (1 - height01);
-        //     return localDensity;
-        // }
-
-        // private static float CalculateOpticalDepth(Vector3 rayOrigin, Vector3 rayDirection, float rayLength, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloff)
-        // {
-        //     Vector3 densitySamplePoint = rayOrigin;
-        //     float stepSize = rayLength / (NUM_PRECOMPUTE_STEPS - 1);
-        //     float opticalDepth = 0;
-
-        //     for (int i = 0; i < NUM_PRECOMPUTE_STEPS; i++)
-        //     {
-        //         float localDensity = DensityAtPoint(densitySamplePoint, planetRadius, atmosphereRadius, atmosphereDensityFalloff);
-        //         opticalDepth += localDensity * stepSize;
-        //         densitySamplePoint += rayDirection * stepSize;
-        //     }
-
-        //     return opticalDepth;
-        // }
-
-        private static float DensityAtHeight(float height, float atmosphereDensityFalloff, float atmosphereRadius)
+        private static float DensityAtHeightRayleigh(float height, float atmosphereDensityFalloffRayleigh, float atmosphereRadius)
         {
-            return Mathf.Exp(-height * atmosphereDensityFalloff / atmosphereRadius);
+            return Mathf.Exp(-height * atmosphereDensityFalloffRayleigh / atmosphereRadius);
         }
 
-        private static float CalculateOpticalDepth(float height01, float angle01, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloff)
+        private static float DensityAtHeightMie(float height, float atmosphereDensityFalloffMie, float atmosphereRadius)
+        {
+            return Mathf.Exp(-height * atmosphereDensityFalloffMie / atmosphereRadius);
+        }
+
+        private static Vector2 CalculateOpticalDepth(float height01, float angle01, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloffRayleigh, float atmosphereDensityFalloffMie)
         {
             // height: 0 at planet surface, 1 on atmosphere shell.
             // angle: 0 when looking up from planet, 1 when looking down.
@@ -75,22 +56,26 @@ namespace Atmosphere
 
             Vector3 densitySamplePoint = rayOrigin;
             float stepSize = rayLength / (NUM_PRECOMPUTE_STEPS - 1);
-            float opticalDepth = 0f;
+            float opticalDepthRayleigh = 0f;
+            float opticalDepthMie = 0f;
             for (int i = 0; i < NUM_PRECOMPUTE_STEPS; i++)
             {
                 float height = densitySamplePoint.magnitude;
-                if (height < planetRadius) {
-                    return Mathf.Infinity;
+                if (height < planetRadius)
+                {
+                    return Vector2.positiveInfinity;
                 }
-                float localDensity = DensityAtHeight(height, atmosphereDensityFalloff, atmosphereRadius);
-                opticalDepth += localDensity * stepSize;
+                float localDensityRayleigh = DensityAtHeightRayleigh(height, atmosphereDensityFalloffRayleigh, atmosphereRadius);
+                float localDensityMie = DensityAtHeightMie(height, atmosphereDensityFalloffMie, atmosphereRadius);
+                opticalDepthRayleigh += localDensityRayleigh * stepSize;
+                opticalDepthMie += localDensityMie * stepSize;
                 densitySamplePoint += rayDirection * stepSize;
             }
 
-            return opticalDepth;
+            return new Vector2(opticalDepthRayleigh, opticalDepthMie);
         }
 
-        public static Texture2D CreateOpticalDepthTexture(float planetRadius, float atmosphereRadius, float atmosphereDensityFalloff)
+        public static Texture2D CreateOpticalDepthTexture(float planetRadius, float atmosphereRadius, float atmosphereDensityFalloffRayleigh, float atmosphereDensityFalloffMie)
         {
             Color[] colors = new Color[TEXTURE_RESOLUTION * TEXTURE_RESOLUTION];
             for (int y = 0; y < TEXTURE_RESOLUTION; y++)
@@ -99,11 +84,11 @@ namespace Atmosphere
                 for (int x = 0; x < TEXTURE_RESOLUTION; x++)
                 {
                     float angle01 = (float)x / (TEXTURE_RESOLUTION - 1);
-                    float opticalDepth = CalculateOpticalDepth(height01, angle01, planetRadius, atmosphereRadius, atmosphereDensityFalloff);
-                    colors[x + y * TEXTURE_RESOLUTION] = new Color(opticalDepth, 0f, 0f);
+                    Vector2 opticalDepth = CalculateOpticalDepth(height01, angle01, planetRadius, atmosphereRadius, atmosphereDensityFalloffRayleigh, atmosphereDensityFalloffMie);
+                    colors[x + y * TEXTURE_RESOLUTION] = new Color(opticalDepth.x, opticalDepth.y, 0f);
                 }
             }
-            Texture2D texture = new Texture2D(TEXTURE_RESOLUTION, TEXTURE_RESOLUTION, TextureFormat.RFloat, false, true);
+            Texture2D texture = new Texture2D(TEXTURE_RESOLUTION, TEXTURE_RESOLUTION, TextureFormat.RGHalf, false, true);
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.SetPixels(colors);

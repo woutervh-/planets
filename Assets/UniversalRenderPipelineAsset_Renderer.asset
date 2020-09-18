@@ -108,9 +108,10 @@ MonoBehaviour:
       planetCenter: {x: 0, y: 0, z: 0}
       planetRadius: 1.18
       atmosphereRadius: 1.36
-      atmosphereDensityFalloff: 2
-      atmosphereWavelengths: {x: 700, y: 530, z: 440}
-      atmosphereWavelengthsScatter: 5
+      atmosphereDensityFalloffRayleigh: 2
+      atmosphereDensityFalloffMie: 0.25
+      atmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 20}
+      atmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 50}
       atmosphereSunIntensity: 10
 --- !u!114 &7939585488401081710
 MonoBehaviour:

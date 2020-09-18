@@ -12,9 +12,10 @@ namespace Atmosphere
             public Vector3 planetCenter = Vector3.zero;
             public float planetRadius = 0.5f;
             public float atmosphereRadius = 1f;
-            public float atmosphereDensityFalloff = 1f;
-            public Vector3 atmosphereWavelengths = new Vector3(700f, 530f, 440f);
-            public float atmosphereWavelengthsScatter = 1f;
+            public float atmosphereDensityFalloffRayleigh = 2f;
+            public float atmosphereDensityFalloffMie = 0.25f;
+            public Vector4 atmosphereWavelengthsRayleigh = new Vector4(700f, 530f, 440f, 20f);
+            public Vector4 atmosphereWavelengthsMie = new Vector4(2800f, 2800f, 2800f, 50f);
             public float atmosphereSunIntensity = 10f;
         }
 
@@ -86,8 +87,10 @@ namespace Atmosphere
                     atmosphereMaterial.SetVector("_PlanetCenter", atmosphereParameters.planetCenter);
                     atmosphereMaterial.SetFloat("_PlanetRadius", atmosphereParameters.planetRadius);
                     atmosphereMaterial.SetFloat("_AtmosphereRadius", atmosphereParameters.atmosphereRadius);
-                    atmosphereMaterial.SetFloat("_AtmosphereDensityFalloff", atmosphereParameters.atmosphereDensityFalloff);
-                    atmosphereMaterial.SetVector("_AtmosphereWavelengths", new Vector4(atmosphereParameters.atmosphereWavelengths.x, atmosphereParameters.atmosphereWavelengths.y, atmosphereParameters.atmosphereWavelengths.z, atmosphereParameters.atmosphereWavelengthsScatter));
+                    atmosphereMaterial.SetFloat("_AtmosphereFalloffRayleigh", atmosphereParameters.atmosphereDensityFalloffRayleigh);
+                    atmosphereMaterial.SetFloat("_AtmosphereFalloffMie", atmosphereParameters.atmosphereDensityFalloffMie);
+                    atmosphereMaterial.SetVector("_AtmosphereWavelengthsRayleigh", atmosphereParameters.atmosphereWavelengthsRayleigh);
+                    atmosphereMaterial.SetVector("_AtmosphereWavelengthsMie", atmosphereParameters.atmosphereWavelengthsMie);
                     atmosphereMaterial.SetFloat("_AtmosphereSunIntensity", atmosphereParameters.atmosphereSunIntensity);
                     Blit(cmd, source, temporaryColorTexture.Identifier(), atmosphereMaterial, atmosphereShaderPassIndex);
                     Blit(cmd, temporaryColorTexture.Identifier(), source);
@@ -121,7 +124,7 @@ namespace Atmosphere
             atmospherePass = new AtmospherePass(settings.Event, settings.atmosphereMaterial, settings.atmosphereMaterialPassIndex, settings.atmosphereParameters, name);
             renderTextureHandle.Init(settings.textureId);
 
-            Texture2D opticalDepthTexture = AtmosphereTextureGenerator.CreateOpticalDepthTexture(settings.atmosphereParameters.planetRadius, settings.atmosphereParameters.atmosphereRadius, settings.atmosphereParameters.atmosphereDensityFalloff);
+            Texture2D opticalDepthTexture = AtmosphereTextureGenerator.CreateOpticalDepthTexture(settings.atmosphereParameters.planetRadius, settings.atmosphereParameters.atmosphereRadius, settings.atmosphereParameters.atmosphereDensityFalloffRayleigh, settings.atmosphereParameters.atmosphereDensityFalloffMie);
             settings.atmosphereMaterial.SetTexture("_OpticalDepthTexture", opticalDepthTexture);
         }
 
