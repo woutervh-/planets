@@ -40,6 +40,7 @@ namespace Atmosphere
 
         private static Vector2 CalculateOpticalDepth(float height01, float angle01, float planetRadius, float atmosphereRadius, float atmosphereDensityFalloffRayleigh, float atmosphereDensityFalloffMie)
         {
+            // TODO: make texture coordinates logarithmic to add better detail for transitions.
             // height: 0 at planet surface, 1 on atmosphere shell.
             // angle: 0 when looking up from planet, 1 when looking down.
             Vector3 rayOrigin = Vector3.up * planetRadius + Vector3.up * atmosphereRadius * height01;

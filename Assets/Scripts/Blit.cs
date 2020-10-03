@@ -102,7 +102,8 @@ public class Blit : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.isSceneViewCamera) {
+        if (renderingData.cameraData.isSceneViewCamera)
+        {
             return;
         }
 
@@ -115,7 +116,6 @@ public class Blit : ScriptableRendererFeature
             return;
         }
 
-        blitPass.Setup(src, dest);
         renderer.EnqueuePass(blitPass);
     }
 }

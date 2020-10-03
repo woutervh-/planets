@@ -134,6 +134,10 @@ namespace Atmosphere
             {
                 return;
             }
+            if (renderingData.cameraData.camera != Camera.main)
+            {
+                return;
+            }
 
             var src = renderer.cameraColorTarget;
             var dest = (settings.destination == Target.Color) ? RenderTargetHandle.CameraTarget : renderTextureHandle;
