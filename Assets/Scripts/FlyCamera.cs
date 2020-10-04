@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+// using UnityEngine.Rendering.Universal;
 
 [RequireComponent(typeof(Camera))]
 public class FlyCamera : MonoBehaviour
@@ -65,13 +65,13 @@ public class FlyCamera : MonoBehaviour
                 transform.localRotation *= Quaternion.AngleAxis(rollSpeed * Time.deltaTime, Vector3.back);
             }
 
-            Camera camera = GetComponent<Camera>();
-            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
-            foreach (Camera additionalCamera in cameraData.cameraStack)
-            {
-                additionalCamera.transform.position = transform.position;
-                additionalCamera.transform.rotation = transform.rotation;
-            }
+            // Camera camera = GetComponent<Camera>();
+            // UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            // foreach (Camera additionalCamera in cameraData.cameraStack)
+            // {
+            //     additionalCamera.transform.position = transform.position;
+            //     additionalCamera.transform.rotation = transform.rotation;
+            // }
         }
 
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape))
