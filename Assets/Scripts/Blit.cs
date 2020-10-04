@@ -116,6 +116,7 @@ public class Blit : ScriptableRendererFeature
             return;
         }
 
+        blitPass.Setup(src, dest);
         renderer.EnqueuePass(blitPass);
     }
 }
