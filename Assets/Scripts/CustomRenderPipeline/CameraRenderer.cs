@@ -22,7 +22,7 @@ namespace CustomRenderPipeline
 
             ScriptableCullingParameters cullingParameters;
             CullingResults cullingResults;
-            if (camera.TryGetCullingParameters(out cullingParameters))
+            if (camera.TryGetCullingParameters(false, out cullingParameters))
             {
                 cullingResults = context.Cull(ref cullingParameters);
             }
@@ -60,7 +60,9 @@ namespace CustomRenderPipeline
             clearBuffer.Release();
 
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
-            DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+            DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings) {
+                perObjectData = PerObjectData.LightData | PerObjectData.LightIndices
+            };
             FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all);
 
             NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;

@@ -1,6 +1,7 @@
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace CustomRenderPipeline
 {
@@ -30,6 +31,10 @@ namespace CustomRenderPipeline
             int mainLightIndex = GetMainLightIndex(visibleLights);
             SetupMainLightConstants(buffer, visibleLights, mainLightIndex);
             SetupAdditionalLightConstants(buffer, visibleLights, mainLightIndex, cullingResults);
+
+            CoreUtils.SetKeyword(buffer, ShaderKeywordStrings.AdditionalLightsVertex, false);
+            CoreUtils.SetKeyword(buffer, ShaderKeywordStrings.AdditionalLightsPixel, true);
+            CoreUtils.SetKeyword(buffer, ShaderKeywordStrings.MixedLightingSubtractive, false);
         }
 
         static void SetupMainLightConstants(CommandBuffer buffer, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
