@@ -8,7 +8,8 @@ namespace CustomRenderPipeline
     public class CameraRenderer
     {
         static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
-        static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+        static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
+        static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
         public static void Render(ScriptableRenderContext context, Camera camera, bool usePostProcessing)
         {
@@ -35,8 +36,8 @@ namespace CustomRenderPipeline
             CommandBuffer renderBuffer = new CommandBuffer() { name = "Render" };
             if (usePostProcessing)
             {
-                renderBuffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
-                renderBuffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                renderBuffer.GetTemporaryRT(cameraColorTextureId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
+                renderBuffer.SetRenderTarget(cameraColorTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 context.ExecuteCommandBuffer(renderBuffer);
                 renderBuffer.Clear();
             }
@@ -81,11 +82,11 @@ namespace CustomRenderPipeline
             if (usePostProcessing)
             {
                 CommandBuffer postProcessingBuffer = new CommandBuffer() { name = "Post-processing" };
-                PostProcessing.Render(postProcessingBuffer, frameBufferId);
+                PostProcessing.Render(postProcessingBuffer, cameraColorTextureId);
                 context.ExecuteCommandBuffer(postProcessingBuffer);
                 postProcessingBuffer.Release();
 
-                renderBuffer.ReleaseTemporaryRT(frameBufferId);
+                renderBuffer.ReleaseTemporaryRT(cameraColorTextureId);
                 context.ExecuteCommandBuffer(renderBuffer);
             }
             renderBuffer.Release();

@@ -16,14 +16,14 @@ namespace CustomRenderPipeline
         static Vector4 defaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         static Vector4 defaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
 
-        static int propertyMainLightPosition = Shader.PropertyToID("_MainLightPosition");
-        static int propertyMainLightColor = Shader.PropertyToID("_MainLightColor");
-        static int propertyAdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
-        static int propertyAdditionalLightsPosition = Shader.PropertyToID("_AdditionalLightsPosition");
-        static int propertyAdditionalLightsColor = Shader.PropertyToID("_AdditionalLightsColor");
-        static int propertyAdditionalLightsAttenuation = Shader.PropertyToID("_AdditionalLightsAttenuation");
-        static int propertyAdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
-        static int propertyAdditionalLightOcclusionProbeChannel = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
+        static int mainLightPositionId = Shader.PropertyToID("_MainLightPosition");
+        static int mainLightColorId = Shader.PropertyToID("_MainLightColor");
+        static int additionalLightsCountId = Shader.PropertyToID("_AdditionalLightsCount");
+        static int additionalLightsPositionId = Shader.PropertyToID("_AdditionalLightsPosition");
+        static int additionalLightsColorId = Shader.PropertyToID("_AdditionalLightsColor");
+        static int additionalLightsAttenuationId = Shader.PropertyToID("_AdditionalLightsAttenuation");
+        static int additionalLightsSpotDirId = Shader.PropertyToID("_AdditionalLightsSpotDir");
+        static int additionalLightOcclusionProbeChannelId = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
 
         public static void SetupLights(CommandBuffer buffer, NativeArray<VisibleLight> visibleLights, CullingResults cullingResults)
         {
@@ -37,8 +37,8 @@ namespace CustomRenderPipeline
             Vector4 lightPosition, lightColor, lightAttenuation, lightSpotDirection, lightOcclusionChannel;
             InitializeLightConstants(visibleLights, mainLightIndex, out lightPosition, out lightColor, out lightAttenuation, out lightSpotDirection, out lightOcclusionChannel);
 
-            buffer.SetGlobalVector(propertyMainLightPosition, lightPosition);
-            buffer.SetGlobalVector(propertyMainLightColor, lightColor);
+            buffer.SetGlobalVector(mainLightPositionId, lightPosition);
+            buffer.SetGlobalVector(mainLightColorId, lightColor);
         }
 
         static void SetupAdditionalLightConstants(CommandBuffer buffer, NativeArray<VisibleLight> visibleLights, int mainLightIndex, CullingResults cullingResults)
@@ -92,16 +92,16 @@ namespace CustomRenderPipeline
                     }
                 }
 
-                buffer.SetGlobalVectorArray(propertyAdditionalLightsPosition, additionalLightPositions);
-                buffer.SetGlobalVectorArray(propertyAdditionalLightsColor, additionalLightColors);
-                buffer.SetGlobalVectorArray(propertyAdditionalLightsAttenuation, additionalLightAttenuations);
-                buffer.SetGlobalVectorArray(propertyAdditionalLightsSpotDir, additionalLightSpotDirections);
-                buffer.SetGlobalVectorArray(propertyAdditionalLightOcclusionProbeChannel, additionalLightOcclusionProbeChannels);
-                buffer.SetGlobalVector(propertyAdditionalLightsCount, new Vector4(maxPerObjectAdditionalLights, 0.0f, 0.0f, 0.0f));
+                buffer.SetGlobalVectorArray(additionalLightsPositionId, additionalLightPositions);
+                buffer.SetGlobalVectorArray(additionalLightsColorId, additionalLightColors);
+                buffer.SetGlobalVectorArray(additionalLightsAttenuationId, additionalLightAttenuations);
+                buffer.SetGlobalVectorArray(additionalLightsSpotDirId, additionalLightSpotDirections);
+                buffer.SetGlobalVectorArray(additionalLightOcclusionProbeChannelId, additionalLightOcclusionProbeChannels);
+                buffer.SetGlobalVector(additionalLightsCountId, new Vector4(maxPerObjectAdditionalLights, 0.0f, 0.0f, 0.0f));
             }
             else
             {
-                buffer.SetGlobalVector(propertyAdditionalLightsCount, Vector4.zero);
+                buffer.SetGlobalVector(additionalLightsCountId, Vector4.zero);
             }
         }
 
