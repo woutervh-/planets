@@ -7,12 +7,12 @@ namespace CustomRenderPipeline
     public class CustomRenderPipelineAsset : RenderPipelineAsset
     {
         [SerializeField]
-        bool usePostProcessing = false;
+        PostProcessingSettings postProcessingSettings = default;
 
         protected override RenderPipeline CreatePipeline()
         {
             // Instantiate the Render Pipeline that this custom SRP uses for rendering.
-            return new CustomRenderPipelineInstance(usePostProcessing);
+            return new CustomRenderPipelineInstance(postProcessingSettings);
         }
     }
 }

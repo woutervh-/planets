@@ -7,27 +7,27 @@ namespace CustomRenderPipeline
 {
     public class CustomRenderPipelineInstance : RenderPipeline
     {
-        bool usePostProcessing;
+        PostProcessingSettings postProcessingSettings;
 
-        public CustomRenderPipelineInstance(bool usePostProcessing)
+        public CustomRenderPipelineInstance(PostProcessingSettings postProcessingSettings)
         {
-            this.usePostProcessing = usePostProcessing;
+            this.postProcessingSettings = postProcessingSettings;
         }
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             foreach (Camera camera in cameras)
             {
-                bool usePostProcessing = this.usePostProcessing;
+                PostProcessingSettings postProcessingSettings = this.postProcessingSettings;
                 if (camera.cameraType > CameraType.SceneView)
                 {
-                    usePostProcessing = false;
+                    postProcessingSettings = null;
                 }
                 if (camera.cameraType == CameraType.SceneView && !SceneView.currentDrawingSceneView.sceneViewState.showImageEffects)
                 {
-                    usePostProcessing = false;
+                    postProcessingSettings = null;
                 }
-                CameraRenderer.Render(context, camera, usePostProcessing);
+                CameraRenderer.Render(context, camera, postProcessingSettings);
             }
         }
     }

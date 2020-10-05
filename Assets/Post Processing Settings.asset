@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a9267f8a2c6cff4ba156df856c8d231, type: 3}
-  m_Name: Custom Render Pipeline Asset
+  m_Script: {fileID: 11500000, guid: 8d88422f0eff0134b9c0c1aa497c72b9, type: 3}
+  m_Name: Post Processing Settings
   m_EditorClassIdentifier: 
-  postProcessingSettings: {fileID: 11400000, guid: ec7dd3dacfc81a7459429ff622c10a5f, type: 2}
+  material: {fileID: 2100000, guid: 40e00f47a6ae2a04d83f49a149021fa8, type: 2}

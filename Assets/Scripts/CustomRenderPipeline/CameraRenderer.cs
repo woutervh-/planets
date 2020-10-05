@@ -11,7 +11,7 @@ namespace CustomRenderPipeline
         static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
         static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
-        public static void Render(ScriptableRenderContext context, Camera camera, bool usePostProcessing)
+        public static void Render(ScriptableRenderContext context, Camera camera, PostProcessingSettings postProcessingSettings)
         {
 #if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
@@ -34,17 +34,22 @@ namespace CustomRenderPipeline
             context.SetupCameraProperties(camera);
 
             CommandBuffer renderBuffer = new CommandBuffer() { name = "Render" };
-            if (usePostProcessing)
+            if (postProcessingSettings != null)
             {
                 renderBuffer.GetTemporaryRT(cameraColorTextureId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
-                renderBuffer.SetRenderTarget(cameraColorTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                renderBuffer.GetTemporaryRT(cameraDepthTextureId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+
+                renderBuffer.SetRenderTarget(
+                    cameraColorTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    cameraDepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                );
                 context.ExecuteCommandBuffer(renderBuffer);
                 renderBuffer.Clear();
             }
 
             CommandBuffer clearBuffer = new CommandBuffer() { name = "Clear" };
             CameraClearFlags clearFlags = camera.clearFlags;
-            if (usePostProcessing)
+            if (postProcessingSettings != null)
             {
                 if (clearFlags > CameraClearFlags.Color)
                 {
@@ -60,7 +65,8 @@ namespace CustomRenderPipeline
             clearBuffer.Release();
 
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
-            DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings) {
+            DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
+            {
                 perObjectData = PerObjectData.LightData | PerObjectData.LightIndices
             };
             FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all);
@@ -81,14 +87,15 @@ namespace CustomRenderPipeline
             }
 #endif
 
-            if (usePostProcessing)
+            if (postProcessingSettings != null)
             {
                 CommandBuffer postProcessingBuffer = new CommandBuffer() { name = "Post-processing" };
-                PostProcessing.Render(postProcessingBuffer, cameraColorTextureId);
+                PostProcessing.Render(postProcessingBuffer, camera, postProcessingSettings, cameraColorTextureId, cameraDepthTextureId);
                 context.ExecuteCommandBuffer(postProcessingBuffer);
                 postProcessingBuffer.Release();
 
                 renderBuffer.ReleaseTemporaryRT(cameraColorTextureId);
+                renderBuffer.ReleaseTemporaryRT(cameraDepthTextureId);
                 context.ExecuteCommandBuffer(renderBuffer);
             }
             renderBuffer.Release();
