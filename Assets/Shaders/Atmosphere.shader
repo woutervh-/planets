@@ -152,9 +152,11 @@ Shader "Atmosphere" {
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                // TODO: output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionCS = float4(input.positionOS.xy * input.positionOS.xy * 2 - 1, input.positionOS.z, 1);
                 output.uv = input.uv;
-                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xy * 2 - 1, 0, 1));
+                // TODO: output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xy * 2 - 1, 0, 1));
+                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xy * 2 - 1, 0, -1));
                 output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0));
                 return output;
             }
