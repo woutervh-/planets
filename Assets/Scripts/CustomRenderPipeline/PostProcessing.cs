@@ -11,6 +11,16 @@ namespace CustomRenderPipeline
         static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
         static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
+        static int planetCenterId = Shader.PropertyToID("_PlanetCenter");
+        static int planetRadiusId = Shader.PropertyToID("_PlanetRadius");
+        static int atmosphereRadiusId = Shader.PropertyToID("_AtmosphereRadius");
+        static int atmosphereFalloffRayleighId = Shader.PropertyToID("_AtmosphereFalloffRayleigh");
+        static int atmosphereFalloffMieId = Shader.PropertyToID("_AtmosphereFalloffMie");
+        static int atmosphereWavelengthsRayleighId = Shader.PropertyToID("_AtmosphereWavelengthsRayleigh");
+        static int atmosphereWavelengthsMieId = Shader.PropertyToID("_AtmosphereWavelengthsMie");
+        static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
+        static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
+
         static Mesh fullscreenMesh;
         static Mesh FullscreenMesh
         {
@@ -44,37 +54,32 @@ namespace CustomRenderPipeline
             }
         }
 
-        public static void Render(CommandBuffer buffer, Camera camera, PostProcessingSettings postProcessingSettings, int cameraColorId, int cameraDepthId)
+        static void DoAtmospherePass(CommandBuffer buffer, Camera camera, PostProcessingSettings.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
         {
+            if (atmosphereSettings.Material == null)
+            {
+                return;
+            }
+
             buffer.SetGlobalTexture(cameraColorTextureId, cameraColorId);
             buffer.SetGlobalTexture(cameraDepthTextureId, cameraDepthId);
-            // buffer.Blit(cameraColorId, BuiltinRenderTextureType.CameraTarget, postProcessingSettings.material);
+            // buffer.SetGlobalTexture(opticalDepthTextureId, );
 
-            buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            atmosphereSettings.Material.SetVector(planetCenterId, atmosphereSettings.PlanetCenter);
+            atmosphereSettings.Material.SetFloat(planetRadiusId, atmosphereSettings.PlanetRadius);
+            atmosphereSettings.Material.SetFloat(atmosphereRadiusId, atmosphereSettings.AtmosphereRadius);
+            atmosphereSettings.Material.SetFloat(atmosphereFalloffRayleighId, atmosphereSettings.AtmosphereDensityFalloffRayleigh);
+            atmosphereSettings.Material.SetFloat(atmosphereFalloffMieId, atmosphereSettings.AtmosphereDensityFalloffMie);
+            atmosphereSettings.Material.SetVector(atmosphereWavelengthsRayleighId, atmosphereSettings.AtmosphereWavelengthsRayleigh);
+            atmosphereSettings.Material.SetVector(atmosphereWavelengthsMieId, atmosphereSettings.AtmosphereWavelengthsMie);
+            atmosphereSettings.Material.SetFloat(atmosphereSunIntensityId, atmosphereSettings.AtmosphereSunIntensity);
 
-            // // TODO: clear?
-            // // ClearFlag.None,
-            // //     Color.clear
+            buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, atmosphereSettings.Material);
+        }
 
-            // // buffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            // buffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            // buffer.SetViewport(camera.pixelRect);
-            // buffer.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, postProcessingSettings.material);
-
-            // buffer.SetGlobalMatrix("unity_MatrixVP", GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
-            // buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            // buffer.SetViewport(camera.pixelRect);
-            buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, postProcessingSettings.material);
-            // buffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-
-            // buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            // buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            // buffer.SetViewport(camera.pixelRect);
-            // buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, postProcessingSettings.material);
-            // buffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-
-            // buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            // buffer.Blit(cameraColorId, BuiltinRenderTextureType.CameraTarget, postProcessingSettings.material, 0);
+        public static void Render(CommandBuffer buffer, Camera camera, PostProcessingSettings postProcessingSettings, int cameraColorId, int cameraDepthId)
+        {
+            DoAtmospherePass(buffer, camera, postProcessingSettings.Atmosphere, cameraColorId, cameraDepthId);
         }
     }
 }

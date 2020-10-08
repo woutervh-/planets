@@ -1,4 +1,4 @@
-Shader "Atmosphere" {
+Shader "Atmosphere/Naive" {
     Properties {
         _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
         _PlanetRadius ("Planet radius", Float) = 0.5
@@ -178,7 +178,7 @@ Shader "Atmosphere" {
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
-                    float3 light = calculateLight(pointInAtmosphere, rayDirection, rayLength);
+                    float3 light = _MainLightColor * calculateLight(pointInAtmosphere, rayDirection, rayLength);
                     return float4(color * (1 - light) + light, 1);
                 }
 

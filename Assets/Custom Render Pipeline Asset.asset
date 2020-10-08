@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a9267f8a2c6cff4ba156df856c8d231, type: 3}
   m_Name: Custom Render Pipeline Asset
   m_EditorClassIdentifier: 
-  postProcessingSettings: {fileID: 11400000, guid: ec7dd3dacfc81a7459429ff622c10a5f, type: 2}
+  postProcessingSettings: {fileID: 11400000, guid: aecd550820e59c242aa7528ef764063d, type: 2}

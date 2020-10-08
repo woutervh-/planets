@@ -90,6 +90,7 @@ namespace CustomRenderPipeline
             if (postProcessingSettings != null)
             {
                 CommandBuffer postProcessingBuffer = new CommandBuffer() { name = "Post-processing" };
+                postProcessingBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
                 PostProcessing.Render(postProcessingBuffer, camera, postProcessingSettings, cameraColorTextureId, cameraDepthTextureId);
                 context.ExecuteCommandBuffer(postProcessingBuffer);
                 postProcessingBuffer.Release();

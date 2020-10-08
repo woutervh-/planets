@@ -1,4 +1,4 @@
-Shader "Atmosphere Precomputed" {
+Shader "Atmosphere/Precomputed" {
     Properties {
         [HideInInspector] _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
         [HideInInspector] _PlanetRadius ("Planet radius", Float) = 0.5
@@ -140,9 +140,9 @@ Shader "Atmosphere Precomputed" {
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionCS = input.positionOS;
                 output.uv = input.uv;
-                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xy * 2 - 1, 0, 1));
+                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xyz, -1));
                 output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0));
                 return output;
             }
@@ -166,7 +166,7 @@ Shader "Atmosphere Precomputed" {
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
-                    float3 light = calculateLight(pointInAtmosphere, rayDirection, rayLength);
+                    float3 light = _MainLightColor * calculateLight(pointInAtmosphere, rayDirection, rayLength);
                     return float4(color * (1 - light) + light, 1);
                 }
 

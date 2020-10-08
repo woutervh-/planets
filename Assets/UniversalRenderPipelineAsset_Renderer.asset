@@ -108,11 +108,11 @@ MonoBehaviour:
       planetCenter: {x: 0, y: 0, z: 0}
       planetRadius: 120
       atmosphereRadius: 130
-      atmosphereDensityFalloffRayleigh: 2
+      atmosphereDensityFalloffRayleigh: 3.3
       atmosphereDensityFalloffMie: 0.25
-      atmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 75}
-      atmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 100}
-      atmosphereSunIntensity: 10
+      atmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 1.1}
+      atmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 4.2}
+      atmosphereSunIntensity: 13.59
 --- !u!114 &7939585488401081710
 MonoBehaviour:
   m_ObjectHideFlags: 0

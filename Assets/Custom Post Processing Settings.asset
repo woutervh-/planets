@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d88422f0eff0134b9c0c1aa497c72b9, type: 3}
+  m_Name: Custom Post Processing Settings
+  m_EditorClassIdentifier: 
+  Atmosphere:
+    PlanetCenter: {x: 0, y: 0, z: 0}
+    PlanetRadius: 120
+    AtmosphereRadius: 130
+    AtmosphereDensityFalloffRayleigh: 3.3
+    AtmosphereDensityFalloffMie: 0.25
+    AtmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 1.1}
+    AtmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 4.2}
+    AtmosphereSunIntensity: 13.59
+    Precomputed: 0
+    Shader: {fileID: 4800000, guid: 77a6e19a002a54c4cb877896b49e72cc, type: 3}
