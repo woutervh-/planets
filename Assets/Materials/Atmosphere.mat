@@ -51,11 +51,11 @@ Material:
     - _AlphaClip: 0
     - _AtmosphereDensityFalloff: 2
     - _AtmosphereFalloffMie: 0.25
-    - _AtmosphereFalloffRayleigh: 2
+    - _AtmosphereFalloffRayleigh: 3.3
     - _AtmosphereMieFalloff: 0.25
     - _AtmosphereRadius: 130
     - _AtmosphereRayleighFalloff: 1
-    - _AtmosphereSunIntensity: 10
+    - _AtmosphereSunIntensity: 13.59
     - _Blend: 0.5
     - _BumpScale: 1
     - _Cull: 2
@@ -79,8 +79,8 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _AtmosphereWavelengths: {r: 700, g: 530, b: 440, a: 20}
-    - _AtmosphereWavelengthsMie: {r: 2800, g: 2800, b: 2800, a: 100}
-    - _AtmosphereWavelengthsRayleigh: {r: 700, g: 530, b: 440, a: 75}
+    - _AtmosphereWavelengthsMie: {r: 2800, g: 2800, b: 2800, a: 4.2}
+    - _AtmosphereWavelengthsRayleigh: {r: 700, g: 530, b: 440, a: 1.1}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
