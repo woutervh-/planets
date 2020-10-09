@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d88422f0eff0134b9c0c1aa497c72b9, type: 3}
   m_Name: Custom Post Processing Settings
   m_EditorClassIdentifier: 
-  Atmosphere:
+  AtmosphereSettings:
     PlanetCenter: {x: 0, y: 0, z: 0}
     PlanetRadius: 120
     AtmosphereRadius: 130

@@ -60,10 +60,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: UniversalRenderPipelineAsset_Renderer
   m_EditorClassIdentifier: 
-  m_RendererFeatures:
-  - {fileID: 7939585488401081710}
-  - {fileID: 1222621180628131501}
-  m_RendererFeatureMap: 6e25fe9bef122f6ead5e356e7c9ff710
+  m_RendererFeatures: []
+  m_RendererFeatureMap: 
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -85,50 +83,3 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
---- !u!114 &1222621180628131501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 396907d2ab2d66b4d904af18666dac24, type: 3}
-  m_Name: Atmosphere
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  settings:
-    Event: 550
-    atmosphereMaterial: {fileID: 2100000, guid: 1eae51edc8d7d7244975a2bbb96a2c3a, type: 2}
-    atmosphereMaterialPassIndex: -1
-    destination: 0
-    textureId: _AtmospherePassTexture
-    atmosphereParameters:
-      planetCenter: {x: 0, y: 0, z: 0}
-      planetRadius: 120
-      atmosphereRadius: 130
-      atmosphereDensityFalloffRayleigh: 3.3
-      atmosphereDensityFalloffMie: 0.25
-      atmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 1.1}
-      atmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 4.2}
-      atmosphereSunIntensity: 13.59
---- !u!114 &7939585488401081710
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39ebd7c6aacd4894b8fba996b601a977, type: 3}
-  m_Name: Atmosphere
-  m_EditorClassIdentifier: 
-  m_Active: 0
-  settings:
-    Event: 550
-    blitMaterial: {fileID: 2100000, guid: 40e00f47a6ae2a04d83f49a149021fa8, type: 2}
-    blitMaterialPassIndex: -1
-    destination: 0
-    textureId: _BlitTex

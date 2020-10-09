@@ -43,7 +43,7 @@ namespace Atmosphere
             // TODO: make texture coordinates logarithmic to add better detail for transitions.
             // height: 0 at planet surface, 1 on atmosphere shell.
             // angle: 0 when looking up from planet, 1 when looking down.
-            Vector3 rayOrigin = Vector3.up * planetRadius + Vector3.up * atmosphereRadius * height01;
+            Vector3 rayOrigin = Vector3.up * (planetRadius + (atmosphereRadius - planetRadius) * height01);
             float theta = Mathf.Acos((angle01 - 0.5f) * 2f);
             Quaternion rotation = Quaternion.AngleAxis(theta / Mathf.PI * 180f, Vector3.right);
             Vector3 rayDirection = rotation * Vector3.down;

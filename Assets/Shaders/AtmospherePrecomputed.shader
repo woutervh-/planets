@@ -77,7 +77,7 @@ Shader "Atmosphere/Precomputed" {
 
             void opticalDepth(float3 rayOrigin, float3 rayDirection, out float sunRayOpticalDepthRayleigh, out float sunRayOpticalDepthMie) {
                 float height = distance(rayOrigin, _PlanetCenter) - _PlanetRadius;
-                float height01 = height / _AtmosphereRadius;
+                float height01 = height / (_AtmosphereRadius - _PlanetRadius);
                 float angle01 = dot(normalize(_PlanetCenter - rayOrigin), rayDirection) * 0.5 + 0.5;
                 float2 opticalDepth = tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).rg;
                 sunRayOpticalDepthRayleigh = opticalDepth.r;

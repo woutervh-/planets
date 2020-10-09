@@ -54,7 +54,7 @@ namespace CustomRenderPipeline
             }
         }
 
-        static void DoAtmospherePass(CommandBuffer buffer, Camera camera, PostProcessingSettings.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
+        static void DoAtmospherePass(CommandBuffer buffer, Camera camera, PostProcessingEffects.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
         {
             if (atmosphereSettings.Material == null)
             {
@@ -63,7 +63,10 @@ namespace CustomRenderPipeline
 
             buffer.SetGlobalTexture(cameraColorTextureId, cameraColorId);
             buffer.SetGlobalTexture(cameraDepthTextureId, cameraDepthId);
-            // buffer.SetGlobalTexture(opticalDepthTextureId, );
+            if (atmosphereSettings.Precomputed)
+            {
+                atmosphereSettings.Material.SetTexture(opticalDepthTextureId, atmosphereSettings.OpticalDepthTexture);
+            }
 
             atmosphereSettings.Material.SetVector(planetCenterId, atmosphereSettings.PlanetCenter);
             atmosphereSettings.Material.SetFloat(planetRadiusId, atmosphereSettings.PlanetRadius);
@@ -79,7 +82,7 @@ namespace CustomRenderPipeline
 
         public static void Render(CommandBuffer buffer, Camera camera, PostProcessingSettings postProcessingSettings, int cameraColorId, int cameraDepthId)
         {
-            DoAtmospherePass(buffer, camera, postProcessingSettings.Atmosphere, cameraColorId, cameraDepthId);
+            DoAtmospherePass(buffer, camera, postProcessingSettings.AtmosphereSettings, cameraColorId, cameraDepthId);
         }
     }
 }
