@@ -64,7 +64,7 @@ namespace CustomRenderPipeline
             }
             clearBuffer.ClearRenderTarget(
                 clearFlags <= CameraClearFlags.Depth,
-                clearFlags == CameraClearFlags.Color,
+                clearFlags == CameraClearFlags.Color, // TODO: don't clear color when camera stacking?
                 clearFlags == CameraClearFlags.Color ? camera.backgroundColor : Color.clear
             );
             context.ExecuteCommandBuffer(clearBuffer);
