@@ -11,6 +11,7 @@ namespace CustomRenderPipeline
         static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
         static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
+        static string precomputedKeyword = "_PRECOMPUTED_OPTICAL_DEPTH";
         static int planetCenterId = Shader.PropertyToID("_PlanetCenter");
         static int planetRadiusId = Shader.PropertyToID("_PlanetRadius");
         static int atmosphereRadiusId = Shader.PropertyToID("_AtmosphereRadius");
@@ -54,7 +55,7 @@ namespace CustomRenderPipeline
             }
         }
 
-        static void DoAtmospherePass(CommandBuffer buffer, Camera camera, PostProcessingEffects.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
+        static void DoAtmospherePass(CommandBuffer buffer, PostProcessingEffects.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
         {
             if (atmosphereSettings.Material == null)
             {
@@ -66,6 +67,11 @@ namespace CustomRenderPipeline
             if (atmosphereSettings.Precomputed)
             {
                 atmosphereSettings.Material.SetTexture(opticalDepthTextureId, atmosphereSettings.OpticalDepthTexture);
+                atmosphereSettings.Material.EnableKeyword(precomputedKeyword);
+            }
+            else
+            {
+                atmosphereSettings.Material.DisableKeyword(precomputedKeyword);
             }
 
             atmosphereSettings.Material.SetVector(planetCenterId, atmosphereSettings.PlanetCenter);
@@ -82,7 +88,7 @@ namespace CustomRenderPipeline
 
         public static void Render(CommandBuffer buffer, Camera camera, PostProcessingSettings postProcessingSettings, int cameraColorId, int cameraDepthId)
         {
-            DoAtmospherePass(buffer, camera, postProcessingSettings.AtmosphereSettings, cameraColorId, cameraDepthId);
+            DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings, cameraColorId, cameraDepthId);
         }
     }
 }

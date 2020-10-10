@@ -31,6 +31,12 @@ namespace CustomRenderPipeline
                 return;
             }
 
+            CommandBuffer lightingBuffer = new CommandBuffer() { name = "Lighting" };
+            NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
+            Lighting.SetupLights(lightingBuffer, visibleLights, cullingResults);
+            context.ExecuteCommandBuffer(lightingBuffer);
+            lightingBuffer.Release();
+
             context.SetupCameraProperties(camera);
 
             CommandBuffer renderBuffer = new CommandBuffer() { name = "Render" };
@@ -71,14 +77,8 @@ namespace CustomRenderPipeline
             };
             FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all);
 
-            NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
-            CommandBuffer cameraBuffer = new CommandBuffer() { name = "Camera" };
-            Lighting.SetupLights(cameraBuffer, visibleLights, cullingResults);
-            context.ExecuteCommandBuffer(cameraBuffer);
-            cameraBuffer.Release();
-
-            context.DrawSkybox(camera);
             context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+            context.DrawSkybox(camera);
 
 #if UNITY_EDITOR
             if (Handles.ShouldRenderGizmos())

@@ -8,12 +8,11 @@ namespace SQT
 {
     public class PerlinDisplacementGPU : MeshModifier
     {
-        public int seed = 0;
-        public float strength = 0.1f;
-        public float frequency = 1f;
-        public float lacunarity = 2f;
-        public float persistence = 0.5f;
-        public int octaves = 8;
+        public float strength;
+        public float frequency;
+        public float lacunarity;
+        public float persistence;
+        public int octaves;
         public ComputeShader computeShader;
 
         Noise.Perlin perlin;
@@ -23,7 +22,7 @@ namespace SQT
         ComputeBuffer normalBuffer;
         int computeKernel;
 
-        public PerlinDisplacementGPU()
+        public PerlinDisplacementGPU(int seed)
         {
             perlin = new Noise.Perlin(seed);
             gradientsTexture = Noise.PerlinTextureGenerator.CreateGradientsTexture(perlin);

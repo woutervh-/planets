@@ -1,4 +1,3 @@
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,6 +18,7 @@ namespace CustomRenderPipeline
             foreach (Camera camera in cameras)
             {
                 PostProcessingSettings postProcessingSettings = this.postProcessingSettings;
+#if UNITY_EDITOR
                 if (camera.cameraType > CameraType.SceneView)
                 {
                     postProcessingSettings = null;
@@ -27,6 +27,7 @@ namespace CustomRenderPipeline
                 {
                     postProcessingSettings = null;
                 }
+#endif
                 CameraRenderer.Render(context, camera, postProcessingSettings);
             }
         }

@@ -1,13 +1,15 @@
-Shader "Atmosphere/Naive" {
+Shader "Atmosphere" {
     Properties {
-        _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
-        _PlanetRadius ("Planet radius", Float) = 0.5
-        _AtmosphereRadius ("Atmosphere radius", Float) = 1
-        _AtmosphereFalloffRayleigh ("Atmosphere falloff Rayleigh", Float) = 2
-        _AtmosphereFalloffMie ("Atmosphere falloff Mie", Float) = 0.25
-        _AtmosphereWavelengthsRayleigh ("Atmosphere wavelengths", Vector) = (700, 530, 440, 20)
-        _AtmosphereWavelengthsMie ("Atmosphere wavelengths", Vector) = (2800, 2800, 2800, 50)
-        _AtmosphereSunIntensity ("Atmosphere sun intensity", Float) = 10
+        [HideInInspector] _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
+        [HideInInspector] _PlanetRadius ("Planet radius", Float) = 0.5
+        [HideInInspector] _AtmosphereRadius ("Atmosphere radius", Float) = 1
+        [HideInInspector] _AtmosphereFalloffRayleigh ("Atmosphere falloff Rayleigh", Float) = 2
+        [HideInInspector] _AtmosphereFalloffMie ("Atmosphere falloff Mie", Float) = 0.25
+        [HideInInspector] _AtmosphereWavelengthsRayleigh ("Atmosphere wavelengths", Vector) = (700, 530, 440, 20)
+        [HideInInspector] _AtmosphereWavelengthsMie ("Atmosphere wavelengths", Vector) = (2800, 2800, 2800, 50)
+        [HideInInspector] _AtmosphereSunIntensity ("Atmosphere sun intensity", Float) = 10
+        [HideInInspector] _OpticalDepthTexture ("Optical depth texture", 2D) = "white" {}
+        [HideInInspector] [Toggle(_PRECOMPUTED_OPTICAL_DEPTH)] _PrecomputedOpticalDepth ("Precomputed optical depth", Float) = 0
     }
 
     SubShader {
@@ -22,13 +24,18 @@ Shader "Atmosphere/Naive" {
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+            #pragma shader_feature _PRECOMPUTED_OPTICAL_DEPTH
+
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define VIEW_RAY_SAMPLES 32
+            #define VIEW_RAY_SAMPLES 64
 
             sampler2D _CameraColorTexture;
             sampler2D _CameraDepthTexture;
+            #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
+                sampler2D _OpticalDepthTexture;
+            #endif
 
             float3 _PlanetCenter;
             float _PlanetRadius;
@@ -73,24 +80,35 @@ Shader "Atmosphere/Naive" {
                 return exp(-height * _AtmosphereFalloffMie / _AtmosphereRadius);
             }
 
-            bool opticalDepth(float3 rayOrigin, float3 rayDirection, float rayLength, out float opticalDepthRayleigh, out float opticalDepthMie) {
-                float3 densitySamplePoint = rayOrigin;
-                float stepSize = rayLength / (VIEW_RAY_SAMPLES - 1);
-                opticalDepthRayleigh = 0;
-                opticalDepthMie = 0;
-
-                for (int i = 0; i < VIEW_RAY_SAMPLES; i++) {
-                    float height = distance(densitySamplePoint, _PlanetCenter);
-                    if (height < _PlanetRadius) {
-                        return false;
-                    }
-                    opticalDepthRayleigh += densityAtHeightRayleigh(height) * stepSize;
-                    opticalDepthMie += densityAtHeightMie(height) * stepSize;
-                    densitySamplePoint += rayDirection * stepSize;
+            #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
+                void opticalDepth(float3 rayOrigin, float3 rayDirection, out float sunRayOpticalDepthRayleigh, out float sunRayOpticalDepthMie) {
+                    float height = distance(rayOrigin, _PlanetCenter) - _PlanetRadius;
+                    float height01 = height / (_AtmosphereRadius - _PlanetRadius);
+                    float angle01 = dot(normalize(_PlanetCenter - rayOrigin), rayDirection) * 0.5 + 0.5;
+                    float2 opticalDepth = tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).rg;
+                    sunRayOpticalDepthRayleigh = opticalDepth.r;
+                    sunRayOpticalDepthMie = opticalDepth.g;
                 }
+            #else
+                bool opticalDepth(float3 rayOrigin, float3 rayDirection, float rayLength, out float opticalDepthRayleigh, out float opticalDepthMie) {
+                    float3 densitySamplePoint = rayOrigin;
+                    float stepSize = rayLength / (VIEW_RAY_SAMPLES - 1);
+                    opticalDepthRayleigh = 0;
+                    opticalDepthMie = 0;
 
-                return true;
-            }
+                    for (int i = 0; i < VIEW_RAY_SAMPLES; i++) {
+                        float height = distance(densitySamplePoint, _PlanetCenter);
+                        if (height < _PlanetRadius) {
+                            return false;
+                        }
+                        opticalDepthRayleigh += densityAtHeightRayleigh(height) * stepSize;
+                        opticalDepthMie += densityAtHeightMie(height) * stepSize;
+                        densitySamplePoint += rayDirection * stepSize;
+                    }
+
+                    return true;
+                }
+            #endif
 
             float3 calculateLight(float3 rayOrigin, float3 rayDirection, float rayLength) {
                 float3 sunDirection = TransformWorldToObject(normalize(_MainLightPosition.xyz));
@@ -111,23 +129,39 @@ Shader "Atmosphere/Naive" {
                     viewRayOpticalDepthRayleigh += localDensityRayleigh * stepSize;
                     viewRayOpticalDepthMie += localDensityMie * stepSize;
 
-                    float pointToAtmosphere0;
-                    float pointToAtmosphere1;
-                    raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _AtmosphereRadius, pointToAtmosphere0, pointToAtmosphere1);
-                    pointToAtmosphere0 = max(0, pointToAtmosphere0);
-                    pointToAtmosphere1 = max(0, pointToAtmosphere1);
+                    #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
+                        float pointToPlanet0 = 0;
+                        float pointToPlanet1 = 0;
+                        bool planetHit = raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _PlanetRadius, pointToPlanet0, pointToPlanet1);
 
-                    float sunRayLength = pointToAtmosphere1 - pointToAtmosphere0;
-                    float sunRayOpticalDepthRayleigh;
-                    float sunRayOpticalDepthMie;
-                    bool overground = opticalDepth(inScatterPoint, sunDirection, sunRayLength, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
+                        if (!(pointToPlanet0 > 0.0 || pointToPlanet1 > 0.0)) {
+                            float sunRayOpticalDepthRayleigh;
+                            float sunRayOpticalDepthMie;
+                            opticalDepth(inScatterPoint, sunDirection, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
+                            float3 tau = scatterRayleigh * (sunRayOpticalDepthRayleigh + viewRayOpticalDepthRayleigh) + scatterMie * (sunRayOpticalDepthMie + viewRayOpticalDepthMie);
+                            float3 transmittance = exp(-tau);
+                            inScatteredLightRayleigh += transmittance * localDensityRayleigh * stepSize;
+                            inScatteredLightMie += transmittance * localDensityMie * stepSize;
+                        }
+                    #else
+                        float pointToAtmosphere0;
+                        float pointToAtmosphere1;
+                        raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _AtmosphereRadius, pointToAtmosphere0, pointToAtmosphere1);
+                        pointToAtmosphere0 = max(0, pointToAtmosphere0);
+                        pointToAtmosphere1 = max(0, pointToAtmosphere1);
 
-                    if (overground) {
-                        float3 tau = scatterRayleigh * (sunRayOpticalDepthRayleigh + viewRayOpticalDepthRayleigh) + scatterMie * (sunRayOpticalDepthMie + viewRayOpticalDepthMie);
-                        float3 transmittance = exp(-tau);
-                        inScatteredLightRayleigh += transmittance * localDensityRayleigh * stepSize;
-                        inScatteredLightMie += transmittance * localDensityMie * stepSize;
-                    }
+                        float sunRayLength = pointToAtmosphere1 - pointToAtmosphere0;
+                        float sunRayOpticalDepthRayleigh;
+                        float sunRayOpticalDepthMie;
+                        bool overground = opticalDepth(inScatterPoint, sunDirection, sunRayLength, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
+
+                        if (overground) {
+                            float3 tau = scatterRayleigh * (sunRayOpticalDepthRayleigh + viewRayOpticalDepthRayleigh) + scatterMie * (sunRayOpticalDepthMie + viewRayOpticalDepthMie);
+                            float3 transmittance = exp(-tau);
+                            inScatteredLightRayleigh += transmittance * localDensityRayleigh * stepSize;
+                            inScatteredLightMie += transmittance * localDensityMie * stepSize;
+                        }
+                    #endif
 
                     inScatterPoint += rayDirection * stepSize;
                 }
@@ -138,6 +172,7 @@ Shader "Atmosphere/Naive" {
             struct Attributes {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
+                uint vertexID : SV_VertexID;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -154,7 +189,7 @@ Shader "Atmosphere/Naive" {
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = input.positionOS;
                 output.uv = input.uv;
-                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xyz, -1));
+                output.viewVector = mul(unity_CameraInvProjection, float4(output.positionCS.xyz, -1));
                 output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0));
                 return output;
             }

@@ -22,4 +22,4 @@ MonoBehaviour:
     AtmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 4.2}
     AtmosphereSunIntensity: 13.59
     Precomputed: 1
-    Shader: {fileID: 4800000, guid: 6b6b994ad0dd59d49b57b56981982ea9, type: 3}
+    Shader: {fileID: 4800000, guid: 926b4c0f500962447a7f8cb11bce68b5, type: 3}

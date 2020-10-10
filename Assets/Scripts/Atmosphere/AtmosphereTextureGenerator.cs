@@ -92,6 +92,7 @@ namespace Atmosphere
             Texture2D texture = new Texture2D(TEXTURE_RESOLUTION, TEXTURE_RESOLUTION, TextureFormat.RGHalf, false, true);
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
+            texture.hideFlags = HideFlags.HideAndDontSave;
             texture.SetPixels(colors);
             texture.Apply();
             return texture;
