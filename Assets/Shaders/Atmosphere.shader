@@ -189,7 +189,10 @@ Shader "Atmosphere" {
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = input.positionOS;
                 output.uv = input.uv;
-                output.viewVector = mul(unity_CameraInvProjection, float4(output.positionCS.xyz, -1));
+                if (_ProjectionParams.x < 0) {
+                    output.positionCS.y = -output.positionCS.y;
+                }
+                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xyz, -1));
                 output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0));
                 return output;
             }
