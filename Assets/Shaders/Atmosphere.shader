@@ -172,7 +172,6 @@ Shader "Atmosphere" {
             struct Attributes {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
-                uint vertexID : SV_VertexID;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -213,6 +212,7 @@ Shader "Atmosphere" {
                 cameraToAtmosphere1 = max(0, cameraToAtmosphere1);
 
                 float rayLength = min(cameraToAtmosphere1 - cameraToAtmosphere0, depth - cameraToAtmosphere0);
+                // float rayLength = cameraToAtmosphere1 - cameraToAtmosphere0;
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;

@@ -8,10 +8,8 @@ namespace CustomRenderPipeline
     public class CameraRenderer
     {
         static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
-        static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
-        static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
-        public static void Render(ScriptableRenderContext context, Camera camera, PostProcessingSettings postProcessingSettings)
+        public static void Render(ScriptableRenderContext context, Camera camera, ClearFlag clearFlag, RenderTargetIdentifier targetColor, RenderTargetIdentifier targetDepth)
         {
 #if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
@@ -31,44 +29,14 @@ namespace CustomRenderPipeline
                 return;
             }
 
-            CommandBuffer lightingBuffer = new CommandBuffer() { name = "Lighting" };
+            CommandBuffer buffer = new CommandBuffer() { name = camera.name };
+
             NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
-            Lighting.SetupLights(lightingBuffer, visibleLights, cullingResults);
-            context.ExecuteCommandBuffer(lightingBuffer);
-            lightingBuffer.Release();
+            Lighting.SetupLights(buffer, visibleLights, cullingResults);
+            context.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
 
             context.SetupCameraProperties(camera);
-
-            CommandBuffer renderBuffer = new CommandBuffer() { name = "Render" };
-            if (postProcessingSettings != null)
-            {
-                renderBuffer.GetTemporaryRT(cameraColorTextureId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
-                renderBuffer.GetTemporaryRT(cameraDepthTextureId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-
-                renderBuffer.SetRenderTarget(
-                    cameraColorTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    cameraDepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
-                context.ExecuteCommandBuffer(renderBuffer);
-                renderBuffer.Clear();
-            }
-
-            CommandBuffer clearBuffer = new CommandBuffer() { name = "Clear" };
-            CameraClearFlags clearFlags = camera.clearFlags;
-            if (postProcessingSettings != null)
-            {
-                if (clearFlags > CameraClearFlags.Color)
-                {
-                    clearFlags = CameraClearFlags.Color;
-                }
-            }
-            clearBuffer.ClearRenderTarget(
-                clearFlags <= CameraClearFlags.Depth,
-                clearFlags == CameraClearFlags.Color, // TODO: don't clear color when camera stacking?
-                clearFlags == CameraClearFlags.Color ? camera.backgroundColor : Color.clear
-            );
-            context.ExecuteCommandBuffer(clearBuffer);
-            clearBuffer.Release();
 
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
             DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
@@ -76,6 +44,22 @@ namespace CustomRenderPipeline
                 perObjectData = PerObjectData.LightData | PerObjectData.LightIndices
             };
             FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all);
+
+            buffer.SetRenderTarget(
+                targetColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                targetDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+            if (clearFlag != ClearFlag.None)
+            {
+                buffer.ClearRenderTarget(
+                    (clearFlag & ClearFlag.Depth) != 0,
+                    (clearFlag & ClearFlag.Color) != 0,
+                    (clearFlag & ClearFlag.Color) != 0 ? camera.backgroundColor : Color.clear,
+                    1.0f
+                );
+            }
+            context.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
 
             context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
             context.DrawSkybox(camera);
@@ -87,19 +71,14 @@ namespace CustomRenderPipeline
             }
 #endif
 
-            if (postProcessingSettings != null)
-            {
-                CommandBuffer postProcessingBuffer = new CommandBuffer() { name = "Post-processing" };
-                postProcessingBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-                PostProcessing.Render(postProcessingBuffer, camera, postProcessingSettings, cameraColorTextureId, cameraDepthTextureId);
-                context.ExecuteCommandBuffer(postProcessingBuffer);
-                postProcessingBuffer.Release();
-
-                renderBuffer.ReleaseTemporaryRT(cameraColorTextureId);
-                renderBuffer.ReleaseTemporaryRT(cameraDepthTextureId);
-                context.ExecuteCommandBuffer(renderBuffer);
-            }
-            renderBuffer.Release();
+            // if (postProcessingSettings != null)
+            // {
+            //     CommandBuffer postProcessingBuffer = new CommandBuffer() { name = "Post-processing" };
+            //     postProcessingBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            //     PostProcessing.Render(postProcessingBuffer, camera, postProcessingSettings);
+            //     context.ExecuteCommandBuffer(postProcessingBuffer);
+            //     postProcessingBuffer.Release();
+            // }
 
 #if UNITY_EDITOR
             if (Handles.ShouldRenderGizmos())
@@ -108,7 +87,8 @@ namespace CustomRenderPipeline
             }
 #endif
 
-            context.Submit();
+            buffer.Release();
+            context.Submit(); // TODO: necessary?
         }
     }
 }

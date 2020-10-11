@@ -20,6 +20,32 @@ namespace CustomRenderPipeline
         static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
         static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
 
+        static Material copyMaterial;
+        static Material CopyMaterial
+        {
+            get
+            {
+                if (copyMaterial == null)
+                {
+                    copyMaterial = new Material(Shader.Find("CustomRenderPipeline/Copy"));
+                }
+                return copyMaterial;
+            }
+        }
+
+        static Material copyDepthMaterial;
+        static Material CopyDepthMaterial
+        {
+            get
+            {
+                if (copyDepthMaterial == null)
+                {
+                    copyDepthMaterial = new Material(Shader.Find("CustomRenderPipeline/CopyDepth"));
+                }
+                return copyDepthMaterial;
+            }
+        }
+
         static Mesh fullscreenMesh;
         static Mesh FullscreenMesh
         {
@@ -53,15 +79,13 @@ namespace CustomRenderPipeline
             }
         }
 
-        static void DoAtmospherePass(CommandBuffer buffer, PostProcessingEffects.AtmosphereSettings atmosphereSettings, int cameraColorId, int cameraDepthId)
+        static void DoAtmospherePass(CommandBuffer buffer, PostProcessingEffects.AtmosphereSettings atmosphereSettings)
         {
             if (atmosphereSettings.Material == null)
             {
                 return;
             }
 
-            buffer.SetGlobalTexture(cameraColorTextureId, cameraColorId);
-            buffer.SetGlobalTexture(cameraDepthTextureId, cameraDepthId);
             if (atmosphereSettings.Precomputed)
             {
                 atmosphereSettings.Material.SetTexture(opticalDepthTextureId, atmosphereSettings.OpticalDepthTexture);
@@ -84,9 +108,45 @@ namespace CustomRenderPipeline
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, atmosphereSettings.Material);
         }
 
-        public static void Render(CommandBuffer buffer, Camera camera, PostProcessingSettings postProcessingSettings, int cameraColorId, int cameraDepthId)
+        static void DoBlitPass(CommandBuffer buffer, Material material)
         {
-            DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings, cameraColorId, cameraDepthId);
+            buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, material);
+        }
+
+        public static void Render(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, PostProcessingSettings postProcessingSettings)
+        {
+            buffer.SetGlobalTexture(cameraColorTextureId, colorSource);
+            buffer.SetGlobalTexture(cameraDepthTextureId, depthSource);
+            buffer.SetRenderTarget(
+                colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                depthTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+
+            if (postProcessingSettings)
+            {
+                DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings);
+            }
+            else
+            {
+                DoBlitPass(buffer, CopyMaterial);
+            }
+        }
+
+        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
+        {
+            buffer.SetGlobalTexture(cameraColorTextureId, colorSource);
+            buffer.SetGlobalTexture(cameraDepthTextureId, depthSource);
+            buffer.SetRenderTarget(
+                colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                depthTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+            DoBlitPass(buffer, CopyMaterial);
+        }
+
+        public static void RenderDepthCopy(CommandBuffer buffer, RenderTargetIdentifier colorTarget)
+        {
+            buffer.SetRenderTarget(colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            DoBlitPass(buffer, CopyDepthMaterial);
         }
     }
 }
