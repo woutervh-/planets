@@ -8,6 +8,12 @@ namespace CustomRenderPipeline
     {
         static int cameraColorTextureId = Shader.PropertyToID("_CameraColorTexture");
         static int cameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
+        static int cameraDepthTexture1Id = Shader.PropertyToID("_CameraDepthTexture1");
+        static int cameraDepthTexture2Id = Shader.PropertyToID("_CameraDepthTexture2");
+        static int cameraDepthTexture3Id = Shader.PropertyToID("_CameraDepthTexture3");
+        static int zBufferParams1Id = Shader.PropertyToID("_ZBufferParams1");
+        static int zBufferParams2Id = Shader.PropertyToID("_ZBufferParams2");
+        static int zBufferParams3Id = Shader.PropertyToID("_ZBufferParams3");
 
         static string precomputedKeyword = "_PRECOMPUTED_OPTICAL_DEPTH";
         static int planetCenterId = Shader.PropertyToID("_PlanetCenter");
@@ -115,6 +121,7 @@ namespace CustomRenderPipeline
 
         public static void Render(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, PostProcessingSettings postProcessingSettings)
         {
+            // TODO: manage 1 or 3 depth textures.
             buffer.SetGlobalTexture(cameraColorTextureId, colorSource);
             buffer.SetGlobalTexture(cameraDepthTextureId, depthSource);
             buffer.SetRenderTarget(
@@ -143,9 +150,40 @@ namespace CustomRenderPipeline
             DoBlitPass(buffer, CopyMaterial);
         }
 
-        public static void RenderDepthCopy(CommandBuffer buffer, RenderTargetIdentifier colorTarget)
+        static Vector4 GetZBufferParams(Camera camera)
         {
-            buffer.SetRenderTarget(colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            float x = (camera.farClipPlane - camera.nearClipPlane) / camera.nearClipPlane;
+            float y = 1.0f;
+            float z = x / camera.farClipPlane;
+            float w = 1.0f / camera.farClipPlane;
+            return new Vector4(x, y, z, w);
+
+            // float y = camera.farClipPlane / camera.nearClipPlane;
+            // float x = 1.0f - y;
+            // float z = x / camera.farClipPlane;
+            // float w = y / camera.farClipPlane;
+            // return new Vector4(x, y, z, w);
+        }
+
+        public static void SetMultipleZBufferParams(CommandBuffer buffer, Camera camera1, Camera camera2, Camera camera3)
+        {
+            buffer.SetGlobalVector(zBufferParams1Id, GetZBufferParams(camera1));
+            buffer.SetGlobalVector(zBufferParams2Id, GetZBufferParams(camera2));
+            buffer.SetGlobalVector(zBufferParams3Id, GetZBufferParams(camera3));
+        }
+
+        public static void RenderDepthCopy(CommandBuffer buffer, Camera camera1, Camera camera2, Camera camera3, RenderTargetIdentifier depthSource1, RenderTargetIdentifier depthSource2, RenderTargetIdentifier depthSource3, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
+        {
+            buffer.SetRenderTarget(
+                colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                depthTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+            buffer.SetGlobalVector(zBufferParams1Id, GetZBufferParams(camera1));
+            buffer.SetGlobalVector(zBufferParams2Id, GetZBufferParams(camera2));
+            buffer.SetGlobalVector(zBufferParams3Id, GetZBufferParams(camera3));
+            buffer.SetGlobalTexture(cameraDepthTexture1Id, depthSource1);
+            buffer.SetGlobalTexture(cameraDepthTexture2Id, depthSource2);
+            buffer.SetGlobalTexture(cameraDepthTexture3Id, depthSource3);
             DoBlitPass(buffer, CopyDepthMaterial);
         }
     }

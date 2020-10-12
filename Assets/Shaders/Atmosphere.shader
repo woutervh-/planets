@@ -21,10 +21,14 @@ Shader "Atmosphere" {
 
             HLSLPROGRAM
 
+            #pragma shader_feature _PRECOMPUTED_OPTICAL_DEPTH
+            #pragma shader_feature _MULTIPLE_DEPTH_TEXTURES
+
+            #define _MULTIPLE_DEPTH_TEXTURES
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            #pragma shader_feature _PRECOMPUTED_OPTICAL_DEPTH
+            #include "./CustomRenderPipeline/Depth.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -32,7 +36,6 @@ Shader "Atmosphere" {
             #define VIEW_RAY_SAMPLES 64
 
             sampler2D _CameraColorTexture;
-            sampler2D _CameraDepthTexture;
             #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
                 sampler2D _OpticalDepthTexture;
             #endif
@@ -191,16 +194,38 @@ Shader "Atmosphere" {
                 if (_ProjectionParams.x < 0) {
                     output.positionCS.y = -output.positionCS.y;
                 }
-                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xyz, -1));
-                output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0));
+                output.viewVector = mul(unity_CameraInvProjection, float4(input.positionOS.xyz, -1)).xyz;
+                output.viewVector = mul(unity_CameraToWorld, float4(output.viewVector, 0)).xyz;
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                // float depth1 = tex2D(_CameraDepthTexture1, input.uv).r;
+                // float depth2 = tex2D(_CameraDepthTexture2, input.uv).r;
+                // float depth3 = tex2D(_CameraDepthTexture3, input.uv).r;
+                // // depth1 = Linear01DepthFromNear(depth1, _ZBufferParams1);
+                // // depth2 = Linear01DepthFromNear(depth2, _ZBufferParams2);
+                // // depth3 = Linear01DepthFromNear(depth3, _ZBufferParams3);
+                // // return float4(depth1 / _ZBufferParams1.w, depth2 / _ZBufferParams2.w, depth3 / _ZBufferParams3.w, 1);
+                // float depthR;
+                // if (depth1 > 0) {
+                //     return float4(LinearEyeDepth(depth1, _ZBufferParams1), 0, 0, 1);
+                // } else {
+                //     if (depth2 > 0) {
+                //         return float4(0, LinearEyeDepth(depth2, _ZBufferParams2), 0, 1);
+                //     } else {
+                //         return float4(0, 0, LinearEyeDepth(depth3, _ZBufferParams3), 1);
+                //     }
+                // }
+                // depthR *= length(input.viewVector);
+                // return float4(depthR / 200, depthR / 200, depthR / 200, 1);
+
                 float3 color = tex2D(_CameraColorTexture, input.uv).rgb;
-                float depth = tex2D(_CameraDepthTexture, input.uv).r;
-                depth = LinearEyeDepth(depth, _ZBufferParams) * length(input.viewVector);
+                // float depth = tex2D(_CameraDepthTexture, input.uv).r;
+                // depth = LinearEyeDepth(depth, _ZBufferParams) * length(input.viewVector);
+                float depth = GetLinearEyeDepth(input.uv) * length(input.viewVector);
 
                 float3 rayOrigin = _WorldSpaceCameraPos;
                 float3 rayDirection = normalize(input.viewVector);
@@ -216,7 +241,7 @@ Shader "Atmosphere" {
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
-                    float3 light = _MainLightColor * calculateLight(pointInAtmosphere, rayDirection, rayLength);
+                    float3 light = _MainLightColor.rgb * calculateLight(pointInAtmosphere, rayDirection, rayLength);
                     return float4(color * (1 - light) + light, 1);
                 }
 

@@ -1,7 +1,7 @@
 Shader "CustomRenderPipeline/CopyDepth" {
     SubShader {
         Tags { "RenderType" = "Opaque" }
-        ZTest Always ZWrite Off Cull Off
+        ZTest Always ZWrite On Cull Off ColorMask 0
 
         Pass {
             Name "CopyDepth"
@@ -13,7 +13,12 @@ Shader "CustomRenderPipeline/CopyDepth" {
             #pragma vertex Vert
             #pragma fragment Frag
 
-            sampler2D _CameraDepthTexture;
+            sampler2D _CameraDepthTexture1;
+            sampler2D _CameraDepthTexture2;
+            sampler2D _CameraDepthTexture3;
+            float4 _ZBufferParams1;
+            float4 _ZBufferParams2;
+            float4 _ZBufferParams3;
 
             struct Attributes {
                 float4 positionOS : POSITION;
@@ -24,7 +29,6 @@ Shader "CustomRenderPipeline/CopyDepth" {
             struct Varyings {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float3 viewVector : TEXCOORD4;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -40,10 +44,23 @@ Shader "CustomRenderPipeline/CopyDepth" {
                 return output;
             }
 
-            float4 Frag(Varyings input) : SV_Target {
+            float MyLinearEyeDepth(float z, float4 _ZBufferParams) {
+                return 1.0 / (_ZBufferParams.z * z + _ZBufferParams.w);
+            }
+
+            float MyInverseLinearEyeDepth(float depth, float4 _ZBufferParams) {
+                return 1.0 / (_ZBufferParams.z * depth) + _ZBufferParams.w;
+            }
+
+            float Frag(Varyings input) : SV_Depth {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float depth = tex2D(_CameraDepthTexture, input.uv).r;
-                return float4(depth, 1, 1, 1);
+                float depth1 = tex2D(_CameraDepthTexture1, input.uv).r;
+                float depth2 = tex2D(_CameraDepthTexture2, input.uv).r;
+                float depth3 = tex2D(_CameraDepthTexture3, input.uv).r;
+                depth1 = MyLinearEyeDepth(depth1, _ZBufferParams1) * ceil(depth1) * (1 - ceil(depth2)) * (1 - ceil(depth3));
+                depth2 = MyLinearEyeDepth(depth2, _ZBufferParams2) * ceil(depth2) * (1 - ceil(depth3));
+                depth3 = MyLinearEyeDepth(depth3, _ZBufferParams3) * ceil(depth3);
+                return MyInverseLinearEyeDepth(depth1 + depth2 + depth3, _ZBufferParams);
             }
 
             ENDHLSL
