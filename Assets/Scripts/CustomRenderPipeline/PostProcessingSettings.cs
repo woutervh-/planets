@@ -35,8 +35,6 @@ namespace CustomRenderPipeline
                 AtmosphereSettings.AtmosphereDensityFalloffRayleigh,
                 AtmosphereSettings.AtmosphereDensityFalloffMie
             );
-            Noise.Perlin perlin = new Noise.Perlin(0);
-            AtmosphereSettings.BlueNoiseTexture = Noise.PerlinTextureGenerator.CreateValueTexture(perlin, 2048, 4f);
         }
 #endif
     }

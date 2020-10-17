@@ -31,19 +31,6 @@ namespace CustomRenderPipeline.PostProcessingEffects
             }
         }
 
-        private Texture2D blueNoiseTexture;
-        public Texture2D BlueNoiseTexture
-        {
-            get
-            {
-                return blueNoiseTexture;
-            }
-            set
-            {
-                blueNoiseTexture = value;
-            }
-        }
-
         private Material material;
         public Material Material
         {
