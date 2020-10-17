@@ -36,6 +36,7 @@ Shader "Atmosphere" {
             #define VIEW_RAY_SAMPLES 64
 
             sampler2D _CameraColorTexture;
+            sampler2D _BlueNoiseTexture;
             #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
                 sampler2D _OpticalDepthTexture;
             #endif
@@ -84,11 +85,12 @@ Shader "Atmosphere" {
             }
 
             #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
-                void opticalDepth(float3 rayOrigin, float3 rayDirection, out float sunRayOpticalDepthRayleigh, out float sunRayOpticalDepthMie) {
+                void opticalDepth(float3 rayOrigin, float3 rayDirection, float2 uv, out float sunRayOpticalDepthRayleigh, out float sunRayOpticalDepthMie) {
                     float height = distance(rayOrigin, _PlanetCenter) - _PlanetRadius;
                     float height01 = height / (_AtmosphereRadius - _PlanetRadius);
                     float angle01 = dot(normalize(_PlanetCenter - rayOrigin), rayDirection) * 0.5 + 0.5;
-                    float2 opticalDepth = tex2Dlod(_OpticalDepthTexture, float4(angle01, height01, 0, 0)).rg;
+                    float blueNoise = lerp(0.9, 1.1, tex2Dlod(_BlueNoiseTexture, float4(uv, 0, 0)).r);
+                    float2 opticalDepth = tex2Dlod(_OpticalDepthTexture, blueNoise * float4(angle01, height01, 0, 0)).rg;
                     sunRayOpticalDepthRayleigh = opticalDepth.r;
                     sunRayOpticalDepthMie = opticalDepth.g;
                 }
@@ -113,7 +115,7 @@ Shader "Atmosphere" {
                 }
             #endif
 
-            float3 calculateLight(float3 rayOrigin, float3 rayDirection, float rayLength) {
+            float3 calculateLight(float3 rayOrigin, float3 rayDirection, float rayLength, float2 uv) {
                 float3 sunDirection = TransformWorldToObject(normalize(_MainLightPosition.xyz));
                 float cosTheta = dot(sunDirection, rayDirection);
                 float3 scatterRayleigh = pow(400 / _AtmosphereWavelengthsRayleigh.rgb, 4) * _AtmosphereWavelengthsRayleigh.w;
@@ -140,7 +142,7 @@ Shader "Atmosphere" {
                         if (!(pointToPlanet0 > 0.0 || pointToPlanet1 > 0.0)) {
                             float sunRayOpticalDepthRayleigh;
                             float sunRayOpticalDepthMie;
-                            opticalDepth(inScatterPoint, sunDirection, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
+                            opticalDepth(inScatterPoint, sunDirection, uv, sunRayOpticalDepthRayleigh, sunRayOpticalDepthMie);
                             float3 tau = scatterRayleigh * (sunRayOpticalDepthRayleigh + viewRayOpticalDepthRayleigh) + scatterMie * (sunRayOpticalDepthMie + viewRayOpticalDepthMie);
                             float3 transmittance = exp(-tau);
                             inScatteredLightRayleigh += transmittance * localDensityRayleigh * stepSize;
@@ -241,7 +243,8 @@ Shader "Atmosphere" {
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
-                    float3 light = _MainLightColor.rgb * calculateLight(pointInAtmosphere, rayDirection, rayLength);
+                    // float blueNoise = lerp(0.9, 1.1, tex2Dlod(_BlueNoiseTexture, float4(input.uv, 0, 0)).r);
+                    float3 light = _MainLightColor.rgb * calculateLight(pointInAtmosphere, rayDirection, rayLength, input.uv);
                     return float4(color * (1 - light) + light, 1);
                 }
 

@@ -4,6 +4,30 @@ namespace Noise
 {
     public class PerlinTextureGenerator
     {
+        public static Texture2D CreateValueTexture(Perlin perlin, int resolution, float frequency)
+        {
+            Color[] colors = new Color[resolution * resolution];
+            for (int x = 0; x < resolution; x++)
+            {
+                for (int y = 0; y < resolution; y++)
+                {
+                    if (perlin.Value(new Vector3(x, y, 0f)) > 0f)
+                    {
+                        Debug.Log(perlin.Value(new Vector3(x, y, 0f)));
+                    }
+                    Vector3 position = frequency * new Vector3((float)x / resolution * Perlin.SIZE, (float)y / resolution * Perlin.SIZE, 0f);
+                    colors[x + y * resolution] = Color.white * (0.5f + 0.5f * perlin.Value(position));
+                }
+            }
+            Texture2D texture = new Texture2D(resolution, resolution, TextureFormat.R16, false, true);
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Repeat;
+            texture.SetPixels(colors);
+            texture.hideFlags = HideFlags.HideAndDontSave;
+            texture.Apply();
+            return texture;
+        }
+
         public static Texture2D CreateGradientsTexture(Perlin perlin)
         {
             Vector3[] gradients = perlin.GetGradients();
@@ -17,6 +41,7 @@ namespace Noise
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Repeat;
             texture.SetPixels(colors);
+            texture.hideFlags = HideFlags.HideAndDontSave;
             texture.Apply();
             return texture;
         }
@@ -36,6 +61,7 @@ namespace Noise
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Repeat;
             texture.SetPixels(colors);
+            texture.hideFlags = HideFlags.HideAndDontSave;
             texture.Apply();
             return texture;
         }

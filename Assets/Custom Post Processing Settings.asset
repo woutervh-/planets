@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AtmosphereSettings:
     PlanetCenter: {x: 0, y: 0, z: 0}
-    PlanetRadius: 120
-    AtmosphereRadius: 130
+    PlanetRadius: 1200
+    AtmosphereRadius: 1300
     AtmosphereDensityFalloffRayleigh: 3.3
     AtmosphereDensityFalloffMie: 0.25
     AtmosphereWavelengthsRayleigh: {x: 700, y: 530, z: 440, w: 1.1}

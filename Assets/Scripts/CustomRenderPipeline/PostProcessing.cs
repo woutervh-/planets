@@ -25,6 +25,7 @@ namespace CustomRenderPipeline
         static int atmosphereWavelengthsMieId = Shader.PropertyToID("_AtmosphereWavelengthsMie");
         static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
         static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
+        static int blueNoiseTextureId = Shader.PropertyToID("_BlueNoiseTexture");
 
         static Material copyMaterial;
         static Material CopyMaterial
@@ -102,6 +103,7 @@ namespace CustomRenderPipeline
                 atmosphereSettings.Material.DisableKeyword(precomputedKeyword);
             }
 
+            atmosphereSettings.Material.SetTexture(blueNoiseTextureId, atmosphereSettings.BlueNoiseTexture);
             atmosphereSettings.Material.SetVector(planetCenterId, atmosphereSettings.PlanetCenter);
             atmosphereSettings.Material.SetFloat(planetRadiusId, atmosphereSettings.PlanetRadius);
             atmosphereSettings.Material.SetFloat(atmosphereRadiusId, atmosphereSettings.AtmosphereRadius);
