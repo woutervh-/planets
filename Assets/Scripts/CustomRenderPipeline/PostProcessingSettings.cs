@@ -21,6 +21,18 @@ namespace CustomRenderPipeline
             OpticalDepthTexture = null
         };
 
+        [SerializeField]
+        public PostProcessingEffects.OceanSettings OceanSettings = new PostProcessingEffects.OceanSettings
+        {
+            PlanetCenter = Vector3.zero,
+            OceanRadius = 0.5f,
+            AlphaMultiplier = 1f,
+            DepthMultiplier = 1f,
+            ShallowColor = Color.white,
+            DeepColor = Color.black,
+            Shader = null
+        };
+
 #if UNITY_EDITOR
         public void OnValidate()
         {

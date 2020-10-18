@@ -23,3 +23,11 @@ MonoBehaviour:
     AtmosphereSunIntensity: 13.59
     Precomputed: 1
     Shader: {fileID: 4800000, guid: 926b4c0f500962447a7f8cb11bce68b5, type: 3}
+  OceanSettings:
+    PlanetCenter: {x: 0, y: 0, z: 0}
+    OceanRadius: 1200
+    DepthMultiplier: 0.12
+    AlphaMultiplier: 3.01
+    ShallowColor: {r: 0.2747419, g: 0.9245283, b: 0.77638745, a: 1}
+    DeepColor: {r: 0.0514418, g: 0.10005034, b: 0.6415094, a: 1}
+    Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}

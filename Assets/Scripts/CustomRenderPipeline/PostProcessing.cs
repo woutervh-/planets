@@ -15,8 +15,9 @@ namespace CustomRenderPipeline
         static int zBufferParams2Id = Shader.PropertyToID("_ZBufferParams2");
         static int zBufferParams3Id = Shader.PropertyToID("_ZBufferParams3");
 
-        static string precomputedKeyword = "_PRECOMPUTED_OPTICAL_DEPTH";
         static int planetCenterId = Shader.PropertyToID("_PlanetCenter");
+
+        static string precomputedKeyword = "_PRECOMPUTED_OPTICAL_DEPTH";
         static int planetRadiusId = Shader.PropertyToID("_PlanetRadius");
         static int atmosphereRadiusId = Shader.PropertyToID("_AtmosphereRadius");
         static int atmosphereFalloffRayleighId = Shader.PropertyToID("_AtmosphereFalloffRayleigh");
@@ -25,6 +26,12 @@ namespace CustomRenderPipeline
         static int atmosphereWavelengthsMieId = Shader.PropertyToID("_AtmosphereWavelengthsMie");
         static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
         static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
+
+        static int oceanRadiusId = Shader.PropertyToID("_OceanRadius");
+        static int depthMultiplierId = Shader.PropertyToID("_DepthMultiplier");
+        static int alphaMultiplierId = Shader.PropertyToID("_AlphaMultiplier");
+        static int shallowColorId = Shader.PropertyToID("_ShallowColor");
+        static int deepColorId = Shader.PropertyToID("_DeepColor");
 
         static Material copyMaterial;
         static Material CopyMaterial
@@ -114,6 +121,23 @@ namespace CustomRenderPipeline
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, atmosphereSettings.Material);
         }
 
+        static void DoOceanPass(CommandBuffer buffer, PostProcessingEffects.OceanSettings oceanSettings)
+        {
+            if (oceanSettings.Material == null)
+            {
+                return;
+            }
+
+            oceanSettings.Material.SetVector(planetCenterId, oceanSettings.PlanetCenter);
+            oceanSettings.Material.SetFloat(oceanRadiusId, oceanSettings.OceanRadius);
+            oceanSettings.Material.SetFloat(depthMultiplierId, oceanSettings.DepthMultiplier);
+            oceanSettings.Material.SetFloat(alphaMultiplierId, oceanSettings.AlphaMultiplier);
+            oceanSettings.Material.SetColor(shallowColorId, oceanSettings.ShallowColor);
+            oceanSettings.Material.SetColor(deepColorId, oceanSettings.DeepColor);
+
+            buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, oceanSettings.Material);
+        }
+
         static void DoBlitPass(CommandBuffer buffer, Material material)
         {
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, material);
@@ -131,7 +155,8 @@ namespace CustomRenderPipeline
 
             if (postProcessingSettings)
             {
-                DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings);
+                // DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings);
+                DoOceanPass(buffer, postProcessingSettings.OceanSettings);
             }
             else
             {

@@ -97,7 +97,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 0.1
+    - _Strength: 0.22
     - _Surface: 0
     - _TriplanarMapping: 0
     - _VertexDisplacement: 0

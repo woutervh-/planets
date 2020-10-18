@@ -24,8 +24,6 @@ Shader "Atmosphere" {
             #pragma shader_feature _PRECOMPUTED_OPTICAL_DEPTH
             #pragma shader_feature _MULTIPLE_DEPTH_TEXTURES
 
-            #define _MULTIPLE_DEPTH_TEXTURES
-
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "./CustomRenderPipeline/Depth.hlsl"
@@ -135,7 +133,7 @@ Shader "Atmosphere" {
                     #if defined(_PRECOMPUTED_OPTICAL_DEPTH)
                         float pointToPlanet0 = 0;
                         float pointToPlanet1 = 0;
-                        bool planetHit = raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _PlanetRadius, pointToPlanet0, pointToPlanet1);
+                        raySphereIntersect(inScatterPoint, sunDirection, _PlanetCenter, _PlanetRadius, pointToPlanet0, pointToPlanet1);
 
                         if (!(pointToPlanet0 > 0.0 || pointToPlanet1 > 0.0)) {
                             float sunRayOpticalDepthRayleigh;
@@ -202,29 +200,7 @@ Shader "Atmosphere" {
             float4 Frag(Varyings input) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                // float depth1 = tex2D(_CameraDepthTexture1, input.uv).r;
-                // float depth2 = tex2D(_CameraDepthTexture2, input.uv).r;
-                // float depth3 = tex2D(_CameraDepthTexture3, input.uv).r;
-                // // depth1 = Linear01DepthFromNear(depth1, _ZBufferParams1);
-                // // depth2 = Linear01DepthFromNear(depth2, _ZBufferParams2);
-                // // depth3 = Linear01DepthFromNear(depth3, _ZBufferParams3);
-                // // return float4(depth1 / _ZBufferParams1.w, depth2 / _ZBufferParams2.w, depth3 / _ZBufferParams3.w, 1);
-                // float depthR;
-                // if (depth1 > 0) {
-                //     return float4(LinearEyeDepth(depth1, _ZBufferParams1), 0, 0, 1);
-                // } else {
-                //     if (depth2 > 0) {
-                //         return float4(0, LinearEyeDepth(depth2, _ZBufferParams2), 0, 1);
-                //     } else {
-                //         return float4(0, 0, LinearEyeDepth(depth3, _ZBufferParams3), 1);
-                //     }
-                // }
-                // depthR *= length(input.viewVector);
-                // return float4(depthR / 200, depthR / 200, depthR / 200, 1);
-
                 float3 color = tex2D(_CameraColorTexture, input.uv).rgb;
-                // float depth = tex2D(_CameraDepthTexture, input.uv).r;
-                // depth = LinearEyeDepth(depth, _ZBufferParams) * length(input.viewVector);
                 float depth = GetLinearEyeDepth(input.uv) * length(input.viewVector);
 
                 float3 rayOrigin = _WorldSpaceCameraPos;
@@ -237,7 +213,6 @@ Shader "Atmosphere" {
                 cameraToAtmosphere1 = max(0, cameraToAtmosphere1);
 
                 float rayLength = min(cameraToAtmosphere1 - cameraToAtmosphere0, depth - cameraToAtmosphere0);
-                // float rayLength = cameraToAtmosphere1 - cameraToAtmosphere0;
 
                 if (atmosphereHit && rayLength > 0) {
                     float3 pointInAtmosphere = rayOrigin + rayDirection * cameraToAtmosphere0;
