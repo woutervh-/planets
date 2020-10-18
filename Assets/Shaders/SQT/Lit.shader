@@ -53,6 +53,11 @@ Shader "SQT/Lit" {
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "../Noise.hlsl"
 
+            struct FragOutput {
+                float4 color: SV_Target;
+                float depth: SV_Depth;
+            };
+
             Varyings Vertex(Attributes input) {
                 #if defined(_VERTEX_DISPLACEMENT) || defined(_PER_FRAGMENT_NORMALS)
                     float3 pointOnUnitSphere = normalize(input.positionOS.xyz);

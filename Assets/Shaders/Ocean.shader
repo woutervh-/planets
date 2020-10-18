@@ -99,18 +99,18 @@ Shader "Ocean" {
                 float oceanRayLength = min(cameraToOcean1 - cameraToOcean0, depth - cameraToOcean0);
 
                 if (oceanRayLength > 0) {
-                    float3 surfacePoint = rayOrigin + rayDirection * depth;
-                    float surfaceToOcean0;
-                    float surfaceToOcean1;
-                    raySphereIntersect(surfacePoint, sunDirection, _PlanetCenter, _OceanRadius, surfaceToOcean0, surfaceToOcean1);
+                    // float3 surfacePoint = rayOrigin + rayDirection * depth;
+                    // float surfaceToOcean0;
+                    // float surfaceToOcean1;
+                    // raySphereIntersect(surfacePoint, sunDirection, _PlanetCenter, _OceanRadius, surfaceToOcean0, surfaceToOcean1);
                     // surfaceToOcean0 = max(0, surfaceToOcean0);
-                    // surfaceToOcean0 = max(0, surfaceToOcean1);
-                    float sunRayLength = surfaceToOcean1 - surfaceToOcean0;
+                    // // surfaceToOcean0 = max(0, surfaceToOcean1);
+                    // float sunRayLength = surfaceToOcean1 - surfaceToOcean0;
 
                     float3 oceanNormal = normalize(rayOrigin + rayDirection * cameraToOcean0 - _PlanetCenter);
                     float diffuse = saturate(dot(oceanNormal, sunDirection));
 
-                    float opticalDepth = oceanRayLength + sunRayLength;
+                    float opticalDepth = oceanRayLength;
                     float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
                     float alpha = 1 - exp(-opticalDepth * _AlphaMultiplier);
                     float4 oceanColor = lerp(_ShallowColor, _DeepColor, opticalDepth01);
