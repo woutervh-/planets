@@ -48,6 +48,7 @@ Shader "SQT/Lit" {
             #pragma fragment Fragment
 
             #define _ADDITIONAL_LIGHTS // This is to include positionWS in Varyings.
+            #define MIN_FLOAT 1.175494351e-38
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
@@ -88,7 +89,7 @@ Shader "SQT/Lit" {
                 #if defined(_PER_FRAGMENT_HEIGHT)
                     positionOS = pointOnUnitSphere * (1 + noiseSample.w);
                     float4 positionCS = TransformWorldToHClip(TransformObjectToWorld(positionOS));
-                    positionCS.zw = float2(positionCS.z / positionCS.w, 1);
+                    positionCS.z /= positionCS.w;
                 #else
                     float4 positionCS = input.positionCS;
                 #endif
@@ -144,7 +145,7 @@ Shader "SQT/Lit" {
                 FragOutput output;
                 output.color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
                 output.color.rgb = MixFog(output.color.rgb, inputData.fogCoord);
-                output.depth = positionCS.z;
+                output.depth = lerp(MIN_FLOAT, 1, saturate(positionCS.z));
                 return output;
             }
 
