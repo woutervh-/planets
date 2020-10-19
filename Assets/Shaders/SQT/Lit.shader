@@ -77,7 +77,7 @@ Shader "SQT/Lit" {
                 return LitPassVertex(input);
             }
 
-            float4 Fragment(Varyings input) : SV_TARGET {
+            FragOutput Fragment(Varyings input) {
                 float3 positionOS = TransformWorldToObject(input.positionWS);
                 float3 pointOnUnitSphere = normalize(positionOS);
 
@@ -87,6 +87,10 @@ Shader "SQT/Lit" {
 
                 #if defined(_PER_FRAGMENT_HEIGHT)
                     positionOS = pointOnUnitSphere * (1 + noiseSample.w);
+                    float4 positionCS = TransformWorldToHClip(TransformObjectToWorld(positionOS));
+                    positionCS.zw = float2(positionCS.z / positionCS.w, 1);
+                #else
+                    float4 positionCS = input.positionCS;
                 #endif
 
                 #if defined(_PER_FRAGMENT_NORMALS)
@@ -137,10 +141,11 @@ Shader "SQT/Lit" {
                 InputData inputData;
                 InitializeInputData(input, surfaceData.normalTS, inputData);
 
-                half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
-                return color;
+                FragOutput output;
+                output.color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+                output.color.rgb = MixFog(output.color.rgb, inputData.fogCoord);
+                output.depth = positionCS.z;
+                return output;
             }
 
             ENDHLSL

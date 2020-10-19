@@ -22,7 +22,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: SQT Lit
   m_Shader: {fileID: 4800000, guid: b00fa17126c06e740b5cc5db8a601faf, type: 3}
-  m_ShaderKeywords: _PER_FRAGMENT_NORMALS
+  m_ShaderKeywords: _PER_FRAGMENT_HEIGHT _PER_FRAGMENT_NORMALS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -88,7 +88,7 @@ Material:
     - _NormalMap: 0
     - _OcclusionStrength: 1
     - _Octaves: 8
-    - _PerFragmentHeight: 0
+    - _PerFragmentHeight: 1
     - _PerFragmentNormals: 1
     - _Persistence: 0.5
     - _QueueOffset: 0
