@@ -48,7 +48,6 @@ Shader "SQT/Lit" {
             #pragma fragment Fragment
 
             #define _ADDITIONAL_LIGHTS // This is to include positionWS in Varyings.
-            #define MIN_FLOAT 1.175494351e-38
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
@@ -145,7 +144,7 @@ Shader "SQT/Lit" {
                 FragOutput output;
                 output.color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
                 output.color.rgb = MixFog(output.color.rgb, inputData.fogCoord);
-                output.depth = lerp(MIN_FLOAT, 1, saturate(positionCS.z));
+                output.depth = clamp(positionCS.z, FLT_MIN, 1);
                 return output;
             }
 
