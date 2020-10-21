@@ -12,6 +12,7 @@ namespace CustomRenderPipeline.PostProcessingEffects
         public float AlphaMultiplier;
         public Color ShallowColor;
         public Color DeepColor;
+        public float Smoothness;
         public Shader Shader;
 
         private Material material;

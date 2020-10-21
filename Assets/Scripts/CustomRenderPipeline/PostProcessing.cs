@@ -32,6 +32,7 @@ namespace CustomRenderPipeline
         static int alphaMultiplierId = Shader.PropertyToID("_AlphaMultiplier");
         static int shallowColorId = Shader.PropertyToID("_ShallowColor");
         static int deepColorId = Shader.PropertyToID("_DeepColor");
+        static int smoothnessColorId = Shader.PropertyToID("_Smoothness");
 
         static Material copyMaterial;
         static Material CopyMaterial
@@ -134,6 +135,7 @@ namespace CustomRenderPipeline
             oceanSettings.Material.SetFloat(alphaMultiplierId, oceanSettings.AlphaMultiplier);
             oceanSettings.Material.SetColor(shallowColorId, oceanSettings.ShallowColor);
             oceanSettings.Material.SetColor(deepColorId, oceanSettings.DeepColor);
+            oceanSettings.Material.SetFloat(smoothnessColorId, oceanSettings.Smoothness);
 
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, oceanSettings.Material);
         }

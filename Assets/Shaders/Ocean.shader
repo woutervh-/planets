@@ -6,6 +6,7 @@ Shader "Ocean" {
         [HideInInspector] _AlphaMultiplier ("Alpha multiplier", Float) = 1
         [HideInInspector] _ShallowColor ("Shallow color", Color) = (1, 1, 1, 1)
         [HideInInspector] _DeepColor ("Deep color", Color) = (0, 0, 0, 1)
+        [HideInInspector] _Smoothness ("Smoothness", Float) = 0
     }
 
     SubShader {
@@ -36,6 +37,7 @@ Shader "Ocean" {
             float _AlphaMultiplier;
             float4 _ShallowColor;
             float4 _DeepColor;
+            float _Smoothness;
 
             bool raySphereIntersect(float3 rayOrigin, float3 rayDirection, float3 sphereCenter, float sphereRadius, out float t0, out float t1) {
                 float3 L = sphereCenter - rayOrigin;
@@ -111,12 +113,16 @@ Shader "Ocean" {
                     float3 oceanNormal = normalize(rayOrigin + rayDirection * cameraToOcean0 - _PlanetCenter);
                     float diffuse = saturate(dot(oceanNormal, sunDirection));
 
+                    float3 halfVec = SafeNormalize(sunDirection - rayDirection);
+                    float NdotH = saturate(dot(oceanNormal, halfVec));
+                    float specular = pow(NdotH, _Smoothness);
+                    specular *= smoothstep(0, 1, distance(rayOrigin, _PlanetCenter) - _OceanRadius);
+
                     float opticalDepth = oceanRayLength + sunRayLength;
                     float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
                     float alpha = 1 - exp(-opticalDepth * _AlphaMultiplier);
-                    float4 oceanColor = lerp(_ShallowColor, _DeepColor, opticalDepth01);
-
-                    oceanColor *= diffuse;
+                    float4 oceanColor = diffuse * lerp(_ShallowColor, _DeepColor, opticalDepth01) + specular;
+                    
                     return lerp(color, oceanColor, alpha);
                 }
 

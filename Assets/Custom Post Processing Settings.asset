@@ -26,8 +26,9 @@ MonoBehaviour:
   OceanSettings:
     PlanetCenter: {x: 0, y: 0, z: 0}
     OceanRadius: 1200
-    DepthMultiplier: 0.12
-    AlphaMultiplier: 0.7
-    ShallowColor: {r: 0.2747419, g: 0.9245283, b: 0.77638745, a: 1}
-    DeepColor: {r: 0.0514418, g: 0.10005034, b: 0.6415094, a: 1}
+    DepthMultiplier: 0.02
+    AlphaMultiplier: 0.05
+    ShallowColor: {r: 0.24056602, g: 1, b: 0.9265028, a: 1}
+    DeepColor: {r: 0, g: 0.10442384, b: 0.6132076, a: 1}
+    Smoothness: 50
     Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}

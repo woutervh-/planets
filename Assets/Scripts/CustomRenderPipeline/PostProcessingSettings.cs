@@ -30,6 +30,7 @@ namespace CustomRenderPipeline
             DepthMultiplier = 1f,
             ShallowColor = Color.white,
             DeepColor = Color.black,
+            Smoothness = 0f,
             Shader = null
         };
 
