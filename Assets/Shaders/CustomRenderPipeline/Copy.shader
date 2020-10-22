@@ -42,8 +42,7 @@ Shader "CustomRenderPipeline/Copy" {
 
             float4 Frag(Varyings input) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float3 color = tex2D(_CameraColorTexture, input.uv).rgb;
-                return float4(color, 1);
+                return tex2D(_CameraColorTexture, input.uv);
             }
 
             ENDHLSL

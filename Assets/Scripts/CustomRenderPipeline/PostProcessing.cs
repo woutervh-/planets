@@ -145,8 +145,13 @@ namespace CustomRenderPipeline
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, material);
         }
 
-        public static void Render(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, PostProcessingSettings postProcessingSettings)
+        public static void RenderOceanPass(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, PostProcessingSettings postProcessingSettings)
         {
+            if (postProcessingSettings == null)
+            {
+                return;
+            }
+
             // TODO: manage 1 or 3 depth textures.
             buffer.SetGlobalTexture(cameraColorTextureId, colorSource);
             buffer.SetGlobalTexture(cameraDepthTextureId, depthSource);
@@ -154,16 +159,24 @@ namespace CustomRenderPipeline
                 colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 depthTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
             );
+            DoOceanPass(buffer, postProcessingSettings.OceanSettings);
+        }
 
-            if (postProcessingSettings)
+        public static void RenderAtmospherePass(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, PostProcessingSettings postProcessingSettings)
+        {
+            if (postProcessingSettings == null)
             {
-                // DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings);
-                DoOceanPass(buffer, postProcessingSettings.OceanSettings);
+                return;
             }
-            else
-            {
-                DoBlitPass(buffer, CopyMaterial);
-            }
+
+            // TODO: manage 1 or 3 depth textures.
+            buffer.SetGlobalTexture(cameraColorTextureId, colorSource);
+            buffer.SetGlobalTexture(cameraDepthTextureId, depthSource);
+            buffer.SetRenderTarget(
+                colorTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                depthTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+            DoAtmospherePass(buffer, postProcessingSettings.AtmosphereSettings);
         }
 
         public static void Blit(CommandBuffer buffer, RenderTargetIdentifier colorSource, RenderTargetIdentifier depthSource, RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
