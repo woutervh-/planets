@@ -26,6 +26,10 @@ namespace CustomRenderPipeline.PostProcessingEffects
                 }
                 if (material == null || material.shader != Shader)
                 {
+                    if (material != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(material);
+                    }
                     material = new Material(Shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
                 return material;

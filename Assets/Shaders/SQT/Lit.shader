@@ -2,13 +2,16 @@ Shader "SQT/Lit" {
     Properties {
         [MainColor] _BaseColor ("Color", Color) = (0.5, 0.5, 0.5, 1.0)
         [MainTexture] _BaseMap ("Albedo", 2D) = "white" {}
+        _Metallic ("Metallic", Range(0, 1)) = 0.5
+        _Smoothness ("Smoothness", Range(0, 1)) = 0.5
 
         [Toggle(_NORMALMAP)] _NormalMap ("Bump", Float) = 0
         _BumpScale ("Bump scale", Float) = 1.0
         _BumpMap ("Bump map", 2D) = "bump" {}
 
         [Toggle(_TRIPLANAR_MAPPING)] _TriplanarMapping ("Triplanar mapping", Float) = 0
-        _MapScale ("Map scale", Float) = 1.0
+        _TriplanarMapScale ("Triplanar map scale", Float) = 1.0
+        _TriplanarSharpness ("Triplanar sharpness", Float) = 1.0
 
         [Toggle(_VERTEX_DISPLACEMENT)] _VertexDisplacement ("Vertex displacement", Float) = 0
         [Toggle(_PER_FRAGMENT_HEIGHT)] _PerFragmentHeight ("Per fragment height", Float) = 0
@@ -52,6 +55,11 @@ Shader "SQT/Lit" {
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "../Noise.hlsl"
+
+            #ifdef _TRIPLANAR_MAPPING
+                float _TriplanarMapScale;
+                float _TriplanarSharpness;
+            #endif
 
             struct FragOutput {
                 float4 color: SV_Target;
@@ -119,16 +127,26 @@ Shader "SQT/Lit" {
                 InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
                 #if defined(_TRIPLANAR_MAPPING)
-                    float3 bf = normalize(abs(normalOS));
+                    float3 bf = pow(abs(normalOS), _TriplanarSharpness);
                     bf /= bf.x + bf.y + bf.z;
-                    float2 tx = positionOS.yz * _MapScale;
-                    float2 ty = positionOS.zx * _MapScale;
-                    float2 tz = positionOS.xy * _MapScale;
+                    float2 tx = positionOS.zy * _TriplanarMapScale;
+                    float2 ty = positionOS.xz * _TriplanarMapScale;
+                    float2 tz = positionOS.xy * _TriplanarMapScale;
+
+                    if (normalOS.x < 0) {
+		                tx.x = -tx.x;
+	                }
+	                if (normalOS.y < 0) {
+		                ty.x = -ty.x;
+	                }
+	                if (normalOS.z >= 0) {
+		                tz.x = -tz.x;
+	                }
 
                     float4 cx = SampleAlbedoAlpha(tx, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.x;
                     float4 cy = SampleAlbedoAlpha(ty, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.y;
                     float4 cz = SampleAlbedoAlpha(tz, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.z;
-                    surfaceData.albedo = (cx + cy + cz).rgb;
+                    surfaceData.albedo = _BaseColor.rgb * (cx + cy + cz).rgb;
 
                     #ifdef _NORMALMAP
                         float3 cnx = SampleNormal(tx, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.x;
