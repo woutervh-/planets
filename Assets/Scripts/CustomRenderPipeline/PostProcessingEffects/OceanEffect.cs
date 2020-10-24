@@ -13,8 +13,16 @@ namespace CustomRenderPipeline.PostProcessingEffects
         public Color ShallowColor;
         public Color DeepColor;
         public float Smoothness;
-        public Texture WaveNormalMap;
-        public float WaveNormalMapScale;
+        public float WaveStrengthA;
+        public float WaveScaleA;
+        public Vector2 WaveVelocityA;
+        public Texture WaveNormalMapA;
+        public float WaveStrengthB;
+        public float WaveScaleB;
+        public Vector2 WaveVelocityB;
+        public Texture WaveNormalMapB;
+        public float TriplanarMapScale;
+        public float TriplanarSharpness;
         public Shader Shader;
 
         private Material material;

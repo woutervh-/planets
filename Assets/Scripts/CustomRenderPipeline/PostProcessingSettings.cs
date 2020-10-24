@@ -31,8 +31,16 @@ namespace CustomRenderPipeline
             ShallowColor = Color.white,
             DeepColor = Color.black,
             Smoothness = 0f,
-            WaveNormalMap = null,
-            WaveNormalMapScale = 1f,
+            WaveStrengthA = 1f,
+            WaveScaleA = 1f,
+            WaveVelocityA = Vector2.right,
+            WaveNormalMapA = null,
+            WaveStrengthB = 1f,
+            WaveScaleB = 1f,
+            WaveVelocityB = Vector2.up,
+            WaveNormalMapB = null,
+            TriplanarMapScale = 1f,
+            TriplanarSharpness = 1f,
             Shader = null
         };
 

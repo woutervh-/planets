@@ -27,15 +27,22 @@ namespace CustomRenderPipeline
         static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
         static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
 
-        static string normalMapKeyword = "_NORMALMAP";
-        static int bumpScaleId = Shader.PropertyToID("_BumpScale");
-        static int bumpMapId = Shader.PropertyToID("_BumpMap");
+        static int waveStrengthAId = Shader.PropertyToID("_WaveStrengthA");
+        static int waveScaleAId = Shader.PropertyToID("_WaveScaleA");
+        static int waveVelocityAId = Shader.PropertyToID("_WaveVelocityA");
+        static int waveNormalMapAId = Shader.PropertyToID("_WaveNormalMapA");
+        static int waveStrengthBId = Shader.PropertyToID("_WaveStrengthB");
+        static int waveScaleBId = Shader.PropertyToID("_WaveScaleB");
+        static int waveVelocityBId = Shader.PropertyToID("_WaveVelocityB");
+        static int waveNormalMapBId = Shader.PropertyToID("_WaveNormalMapB");
         static int oceanRadiusId = Shader.PropertyToID("_OceanRadius");
         static int depthMultiplierId = Shader.PropertyToID("_DepthMultiplier");
         static int alphaMultiplierId = Shader.PropertyToID("_AlphaMultiplier");
         static int shallowColorId = Shader.PropertyToID("_ShallowColor");
         static int deepColorId = Shader.PropertyToID("_DeepColor");
         static int smoothnessColorId = Shader.PropertyToID("_Smoothness");
+        static int triplanarMapScaleId = Shader.PropertyToID("_TriplanarMapScale");
+        static int triplanarSharpnessId = Shader.PropertyToID("_TriplanarSharpness");
 
         static Material copyMaterial;
         static Material CopyMaterial
@@ -132,15 +139,19 @@ namespace CustomRenderPipeline
                 return;
             }
 
-            if (oceanSettings.WaveNormalMap != null)
+            if (oceanSettings.WaveNormalMapA != null)
             {
-                oceanSettings.Material.SetTexture(bumpMapId, oceanSettings.WaveNormalMap);
-                oceanSettings.Material.SetFloat(bumpScaleId, oceanSettings.WaveNormalMapScale);
-                oceanSettings.Material.EnableKeyword(normalMapKeyword);
+                oceanSettings.Material.SetFloat(waveStrengthAId, oceanSettings.WaveStrengthA);
+                oceanSettings.Material.SetFloat(waveScaleAId, oceanSettings.WaveScaleA);
+                oceanSettings.Material.SetVector(waveVelocityAId, oceanSettings.WaveVelocityA);
+                oceanSettings.Material.SetTexture(waveNormalMapAId, oceanSettings.WaveNormalMapA);
             }
-            else
+            if (oceanSettings.WaveNormalMapB != null)
             {
-                oceanSettings.Material.DisableKeyword(normalMapKeyword);
+                oceanSettings.Material.SetFloat(waveStrengthBId, oceanSettings.WaveStrengthB);
+                oceanSettings.Material.SetFloat(waveScaleBId, oceanSettings.WaveScaleB);
+                oceanSettings.Material.SetVector(waveVelocityBId, oceanSettings.WaveVelocityB);
+                oceanSettings.Material.SetTexture(waveNormalMapBId, oceanSettings.WaveNormalMapB);
             }
 
             oceanSettings.Material.SetVector(planetCenterId, oceanSettings.PlanetCenter);
@@ -150,6 +161,8 @@ namespace CustomRenderPipeline
             oceanSettings.Material.SetColor(shallowColorId, oceanSettings.ShallowColor);
             oceanSettings.Material.SetColor(deepColorId, oceanSettings.DeepColor);
             oceanSettings.Material.SetFloat(smoothnessColorId, oceanSettings.Smoothness);
+            oceanSettings.Material.SetFloat(triplanarMapScaleId, oceanSettings.TriplanarMapScale);
+            oceanSettings.Material.SetFloat(triplanarSharpnessId, oceanSettings.TriplanarSharpness);
 
             buffer.DrawMesh(FullscreenMesh, Matrix4x4.identity, oceanSettings.Material);
         }

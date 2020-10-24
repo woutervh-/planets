@@ -8,9 +8,16 @@ Shader "Ocean" {
         [HideInInspector] _DeepColor ("Deep color", Color) = (0, 0, 0, 1)
         [HideInInspector] _Smoothness ("Smoothness", Float) = 0
 
-        [HideInInspector] [Toggle(_NORMALMAP)] _NormalMap ("Bump", Float) = 0
-        [HideInInspector] _BumpScale ("Bump scale", Float) = 1.0
-        [HideInInspector] _BumpMap ("Bump map", 2D) = "bump" {}
+        [HideInInspector] _WaveStrengthA ("Wave strength A", Float) = 1
+        [HideInInspector] _WaveScaleA ("Wave scale A", Float) = 1
+        [HideInInspector] _WaveVelocityA ("Wave velocity A", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _WaveNormalMapA ("Wave normal map A", 2D) = "bump" {}
+        [HideInInspector] _WaveStrengthB ("Wave strength B", Float) = 1
+        [HideInInspector] _WaveScaleB ("Wave scale B", Float) = 1
+        [HideInInspector] _WaveVelocityB ("Wave velocity A", Vector) = (1, 0, 0, 0)
+        [HideInInspector] _WaveNormalMapB ("Wave normal map B", 2D) = "bump" {}
+        [HideInInspector] _TriplanarMapScale ("Triplanar map scale", Float) = 1
+        [HideInInspector] _TriplanarSharpness ("Triplanar sharpness", Float) = 1.0
     }
 
     SubShader {
@@ -24,8 +31,12 @@ Shader "Ocean" {
 
             #pragma shader_feature _MULTIPLE_DEPTH_TEXTURES
 
+            #define _NORMALMAP
+            #define _TRIPLANAR_MAPPING
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "./CustomRenderPipeline/Depth.hlsl"
 
             #pragma vertex Vert
@@ -41,7 +52,16 @@ Shader "Ocean" {
             float _AlphaMultiplier;
             float4 _ShallowColor;
             float4 _DeepColor;
-            float _Smoothness;
+            float _TriplanarMapScale;
+            float _TriplanarSharpness;
+            float _WaveStrengthA;
+            float _WaveScaleA;
+            float2 _WaveVelocityA;
+            TEXTURE2D(_WaveNormalMapA); SAMPLER(sampler_WaveNormalMapA);
+            float _WaveStrengthB;
+            float _WaveScaleB;
+            float2 _WaveVelocityB;
+            TEXTURE2D(_WaveNormalMapB); SAMPLER(sampler_WaveNormalMapB);
 
             bool raySphereIntersect(float3 rayOrigin, float3 rayDirection, float3 sphereCenter, float sphereRadius, out float t0, out float t1) {
                 float3 L = sphereCenter - rayOrigin;
@@ -114,34 +134,41 @@ Shader "Ocean" {
                     surfaceToOcean1 = max(0, surfaceToOcean1);
                     float sunRayLength = surfaceToOcean1 - surfaceToOcean0;
 
-                    float3 oceanNormal = normalize(rayOrigin + rayDirection * cameraToOcean0 - _PlanetCenter);
+                    float3 positionWS = rayOrigin + rayDirection * cameraToOcean0;
+                    float3 normalWS = normalize(positionWS - _PlanetCenter);
 
                     #if defined(_TRIPLANAR_MAPPING)
-                        // TODO:
+                        float3 positionOS = TransformWorldToObject(positionWS);
+                        float3 normalOS = TransformWorldToObjectDir(normalWS);
                         float3 bf = pow(abs(normalOS), _TriplanarSharpness);
                         bf /= bf.x + bf.y + bf.z;
                         float2 tx = positionOS.zy * _TriplanarMapScale;
                         float2 ty = positionOS.xz * _TriplanarMapScale;
                         float2 tz = positionOS.xy * _TriplanarMapScale;
 
-                        float4 cx = SampleAlbedoAlpha(tx, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.x;
-                        float4 cy = SampleAlbedoAlpha(ty, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.y;
-                        float4 cz = SampleAlbedoAlpha(tz, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.z;
-                        surfaceData.albedo = _BaseColor.rgb * (cx + cy + cz).rgb;
+                        float3 cnx = SampleNormal(tx * _WaveScaleA + _Time.x * _WaveVelocityA, TEXTURE2D_ARGS(_WaveNormalMapA, sampler_WaveNormalMapA), _WaveStrengthA) * bf.x;
+                        float3 cny = SampleNormal(ty * _WaveScaleA + _Time.x * _WaveVelocityA, TEXTURE2D_ARGS(_WaveNormalMapA, sampler_WaveNormalMapA), _WaveStrengthA) * bf.y;
+                        float3 cnz = SampleNormal(tz * _WaveScaleA + _Time.x * _WaveVelocityA, TEXTURE2D_ARGS(_WaveNormalMapA, sampler_WaveNormalMapA), _WaveStrengthA) * bf.z;
+                        float3 dnx = SampleNormal(tx * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.x;
+                        float3 dny = SampleNormal(ty * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.y;
+                        float3 dnz = SampleNormal(tz * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.z;
+                        
+                        float3 normalTS = 0.5 * (cnx + cny + cnz + dnx + dny + dnz);
+                        float3 binormal = cross(normalOS, normalTS);
 
-                        #ifdef _NORMALMAP
-                            float3 cnx = SampleNormal(tx, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.x;
-                            float3 cny = SampleNormal(ty, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.y;
-                            float3 cnz = SampleNormal(tz, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.z;
-                            surfaceData.normalTS = cnx + cny + cnz;
-                        #endif
+                        normalOS = normalize(
+		                    normalTS.x * float3(0, 0, 0) +
+		                    normalTS.y * binormal +
+		                    normalTS.z * normalOS
+                        );
+                        normalWS = TransformObjectToWorldDir(normalOS);
                     #endif
 
                     float3 halfVec = SafeNormalize(sunDirection - rayDirection);
-                    float NdotH = saturate(dot(oceanNormal, halfVec));
+                    float NdotH = saturate(dot(normalWS, halfVec));
                     float specular = pow(NdotH, _Smoothness);
                     specular *= smoothstep(0, 1, distance(rayOrigin, _PlanetCenter) - _OceanRadius);
-                    float diffuse = saturate(dot(oceanNormal, sunDirection));
+                    float diffuse = saturate(dot(normalWS, sunDirection));
 
                     float opticalDepth = oceanRayLength + sunRayLength;
                     float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
