@@ -133,16 +133,6 @@ Shader "SQT/Lit" {
                     float2 ty = positionOS.xz * _TriplanarMapScale;
                     float2 tz = positionOS.xy * _TriplanarMapScale;
 
-                    if (normalOS.x < 0) {
-		                tx.x = -tx.x;
-	                }
-	                if (normalOS.y < 0) {
-		                ty.x = -ty.x;
-	                }
-	                if (normalOS.z >= 0) {
-		                tz.x = -tz.x;
-	                }
-
                     float4 cx = SampleAlbedoAlpha(tx, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.x;
                     float4 cy = SampleAlbedoAlpha(ty, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.y;
                     float4 cz = SampleAlbedoAlpha(tz, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.z;

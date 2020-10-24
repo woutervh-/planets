@@ -27,6 +27,9 @@ namespace CustomRenderPipeline
         static int atmosphereSunIntensityId = Shader.PropertyToID("_AtmosphereSunIntensity");
         static int opticalDepthTextureId = Shader.PropertyToID("_OpticalDepthTexture");
 
+        static string normalMapKeyword = "_NORMALMAP";
+        static int bumpScaleId = Shader.PropertyToID("_BumpScale");
+        static int bumpMapId = Shader.PropertyToID("_BumpMap");
         static int oceanRadiusId = Shader.PropertyToID("_OceanRadius");
         static int depthMultiplierId = Shader.PropertyToID("_DepthMultiplier");
         static int alphaMultiplierId = Shader.PropertyToID("_AlphaMultiplier");
@@ -127,6 +130,17 @@ namespace CustomRenderPipeline
             if (oceanSettings.Material == null)
             {
                 return;
+            }
+
+            if (oceanSettings.WaveNormalMap != null)
+            {
+                oceanSettings.Material.SetTexture(bumpMapId, oceanSettings.WaveNormalMap);
+                oceanSettings.Material.SetFloat(bumpScaleId, oceanSettings.WaveNormalMapScale);
+                oceanSettings.Material.EnableKeyword(normalMapKeyword);
+            }
+            else
+            {
+                oceanSettings.Material.DisableKeyword(normalMapKeyword);
             }
 
             oceanSettings.Material.SetVector(planetCenterId, oceanSettings.PlanetCenter);

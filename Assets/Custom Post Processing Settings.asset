@@ -31,4 +31,5 @@ MonoBehaviour:
     ShallowColor: {r: 0.24056602, g: 1, b: 0.9265028, a: 1}
     DeepColor: {r: 0, g: 0.10442384, b: 0.6132076, a: 1}
     Smoothness: 50
+    WaveNormalMap: {fileID: 2800000, guid: f12431bd97e7c15408fe89132235b116, type: 3}
     Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}

@@ -31,6 +31,8 @@ namespace CustomRenderPipeline
             ShallowColor = Color.white,
             DeepColor = Color.black,
             Smoothness = 0f,
+            WaveNormalMap = null,
+            WaveNormalMapScale = 1f,
             Shader = null
         };
 

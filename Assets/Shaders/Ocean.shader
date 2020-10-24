@@ -7,6 +7,10 @@ Shader "Ocean" {
         [HideInInspector] _ShallowColor ("Shallow color", Color) = (1, 1, 1, 1)
         [HideInInspector] _DeepColor ("Deep color", Color) = (0, 0, 0, 1)
         [HideInInspector] _Smoothness ("Smoothness", Float) = 0
+
+        [HideInInspector] [Toggle(_NORMALMAP)] _NormalMap ("Bump", Float) = 0
+        [HideInInspector] _BumpScale ("Bump scale", Float) = 1.0
+        [HideInInspector] _BumpMap ("Bump map", 2D) = "bump" {}
     }
 
     SubShader {
@@ -111,12 +115,33 @@ Shader "Ocean" {
                     float sunRayLength = surfaceToOcean1 - surfaceToOcean0;
 
                     float3 oceanNormal = normalize(rayOrigin + rayDirection * cameraToOcean0 - _PlanetCenter);
-                    float diffuse = saturate(dot(oceanNormal, sunDirection));
+
+                    #if defined(_TRIPLANAR_MAPPING)
+                        // TODO:
+                        float3 bf = pow(abs(normalOS), _TriplanarSharpness);
+                        bf /= bf.x + bf.y + bf.z;
+                        float2 tx = positionOS.zy * _TriplanarMapScale;
+                        float2 ty = positionOS.xz * _TriplanarMapScale;
+                        float2 tz = positionOS.xy * _TriplanarMapScale;
+
+                        float4 cx = SampleAlbedoAlpha(tx, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.x;
+                        float4 cy = SampleAlbedoAlpha(ty, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.y;
+                        float4 cz = SampleAlbedoAlpha(tz, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)) * bf.z;
+                        surfaceData.albedo = _BaseColor.rgb * (cx + cy + cz).rgb;
+
+                        #ifdef _NORMALMAP
+                            float3 cnx = SampleNormal(tx, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.x;
+                            float3 cny = SampleNormal(ty, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.y;
+                            float3 cnz = SampleNormal(tz, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale) * bf.z;
+                            surfaceData.normalTS = cnx + cny + cnz;
+                        #endif
+                    #endif
 
                     float3 halfVec = SafeNormalize(sunDirection - rayDirection);
                     float NdotH = saturate(dot(oceanNormal, halfVec));
                     float specular = pow(NdotH, _Smoothness);
                     specular *= smoothstep(0, 1, distance(rayOrigin, _PlanetCenter) - _OceanRadius);
+                    float diffuse = saturate(dot(oceanNormal, sunDirection));
 
                     float opticalDepth = oceanRayLength + sunRayLength;
                     float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
