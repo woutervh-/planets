@@ -12,6 +12,8 @@ namespace SQT
         public int resolution = 7;
         [Range(1f, 100f)]
         public float desiredScreenSpaceLength = 10f;
+        [Range(0f, 1f)]
+        public float reconciliationInterval = 0.1f;
         public Material material;
 
 #if UNITY_EDITOR
@@ -28,6 +30,7 @@ namespace SQT
         bool dirty;
         Camera playerCamera;
         Context context;
+        float lastReconciliationTime;
 
         void OnEnable()
         {
@@ -70,7 +73,11 @@ namespace SQT
                 return;
             }
 
-            Reconciler.Reconcile(context, reconciliationData);
+            if (Time.time >= lastReconciliationTime + reconciliationInterval)
+            {
+                Reconciler.Reconcile(context, reconciliationData);
+                lastReconciliationTime = Time.time;
+            }
         }
 
         void DoUpdate()
@@ -115,6 +122,7 @@ namespace SQT
             };
 
             Reconciler.Initialize(context);
+            lastReconciliationTime = Time.time;
         }
 
         void DoCleanup()

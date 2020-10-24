@@ -121,9 +121,9 @@ Shader "Ocean" {
                     float opticalDepth = oceanRayLength + sunRayLength;
                     float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
                     float alpha = 1 - exp(-opticalDepth * _AlphaMultiplier);
-                    float4 oceanColor = diffuse * lerp(_ShallowColor, _DeepColor, opticalDepth01) + specular;
+                    float4 oceanColor = diffuse * lerp(_ShallowColor, _DeepColor, opticalDepth01);
                     
-                    return lerp(color, oceanColor, alpha);
+                    return lerp(color, oceanColor, alpha) + specular;
                 }
 
                 return color;
