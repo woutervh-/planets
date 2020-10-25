@@ -30,15 +30,19 @@ MonoBehaviour:
     AlphaMultiplier: 0.24
     ShallowColor: {r: 0.24056602, g: 1, b: 0.9265028, a: 1}
     DeepColor: {r: 0, g: 0.10442384, b: 0.6132076, a: 1}
-    Smoothness: 50
-    WaveStrengthA: 1
-    WaveScaleA: 0.79
-    WaveVelocityA: {x: 0, y: 1.25}
-    WaveNormalMapA: {fileID: 2800000, guid: 1c2c2e0eeb0054341a0fd79ea5fbdfbd, type: 3}
-    WaveStrengthB: 4.13
-    WaveScaleB: 1.53
-    WaveVelocityB: {x: 1, y: 0}
-    WaveNormalMapB: {fileID: 2800000, guid: f12431bd97e7c15408fe89132235b116, type: 3}
+    Smoothness: 75
+    WaveStrengthA: 1.52
+    WaveScaleA: 4.57
+    WaveVelocityA: {x: 0, y: 0.36}
+    WaveNormalMapA: {fileID: 2800000, guid: 6f23acba952774c45a64897e06f8bdbe, type: 3}
+    WaveStrengthB: 1.66
+    WaveScaleB: 5.54
+    WaveVelocityB: {x: 0.34, y: 0}
+    WaveNormalMapB: {fileID: 2800000, guid: 6f23acba952774c45a64897e06f8bdbe, type: 3}
+    WaveStrengthC: 2.17
+    WaveScaleC: 0.21
+    WaveVelocityC: {x: 0.2, y: 0.19}
+    WaveNormalMapC: {fileID: 2800000, guid: 6f23acba952774c45a64897e06f8bdbe, type: 3}
     TriplanarMapScale: 0.01
     TriplanarSharpness: 1
     Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}

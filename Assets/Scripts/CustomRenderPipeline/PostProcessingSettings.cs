@@ -39,6 +39,10 @@ namespace CustomRenderPipeline
             WaveScaleB = 1f,
             WaveVelocityB = Vector2.up,
             WaveNormalMapB = null,
+            WaveStrengthC = 1f,
+            WaveScaleC = 1f,
+            WaveVelocityC = Vector2.left,
+            WaveNormalMapC = null,
             TriplanarMapScale = 1f,
             TriplanarSharpness = 1f,
             Shader = null

@@ -21,6 +21,10 @@ namespace CustomRenderPipeline.PostProcessingEffects
         public float WaveScaleB;
         public Vector2 WaveVelocityB;
         public Texture WaveNormalMapB;
+        public float WaveStrengthC;
+        public float WaveScaleC;
+        public Vector2 WaveVelocityC;
+        public Texture WaveNormalMapC;
         public float TriplanarMapScale;
         public float TriplanarSharpness;
         public Shader Shader;

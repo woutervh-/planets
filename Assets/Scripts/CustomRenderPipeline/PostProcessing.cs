@@ -35,6 +35,10 @@ namespace CustomRenderPipeline
         static int waveScaleBId = Shader.PropertyToID("_WaveScaleB");
         static int waveVelocityBId = Shader.PropertyToID("_WaveVelocityB");
         static int waveNormalMapBId = Shader.PropertyToID("_WaveNormalMapB");
+        static int waveStrengthCId = Shader.PropertyToID("_WaveStrengthC");
+        static int waveScaleCId = Shader.PropertyToID("_WaveScaleC");
+        static int waveVelocityCId = Shader.PropertyToID("_WaveVelocityC");
+        static int waveNormalMapCId = Shader.PropertyToID("_WaveNormalMapC");
         static int oceanRadiusId = Shader.PropertyToID("_OceanRadius");
         static int depthMultiplierId = Shader.PropertyToID("_DepthMultiplier");
         static int alphaMultiplierId = Shader.PropertyToID("_AlphaMultiplier");
@@ -152,6 +156,13 @@ namespace CustomRenderPipeline
                 oceanSettings.Material.SetFloat(waveScaleBId, oceanSettings.WaveScaleB);
                 oceanSettings.Material.SetVector(waveVelocityBId, oceanSettings.WaveVelocityB);
                 oceanSettings.Material.SetTexture(waveNormalMapBId, oceanSettings.WaveNormalMapB);
+            }
+            if (oceanSettings.WaveNormalMapC != null)
+            {
+                oceanSettings.Material.SetFloat(waveStrengthCId, oceanSettings.WaveStrengthC);
+                oceanSettings.Material.SetFloat(waveScaleCId, oceanSettings.WaveScaleC);
+                oceanSettings.Material.SetVector(waveVelocityCId, oceanSettings.WaveVelocityC);
+                oceanSettings.Material.SetTexture(waveNormalMapCId, oceanSettings.WaveNormalMapC);
             }
 
             oceanSettings.Material.SetVector(planetCenterId, oceanSettings.PlanetCenter);

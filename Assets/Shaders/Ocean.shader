@@ -14,8 +14,12 @@ Shader "Ocean" {
         [HideInInspector] _WaveNormalMapA ("Wave normal map A", 2D) = "bump" {}
         [HideInInspector] _WaveStrengthB ("Wave strength B", Float) = 1
         [HideInInspector] _WaveScaleB ("Wave scale B", Float) = 1
-        [HideInInspector] _WaveVelocityB ("Wave velocity A", Vector) = (1, 0, 0, 0)
+        [HideInInspector] _WaveVelocityB ("Wave velocity B", Vector) = (1, 0, 0, 0)
         [HideInInspector] _WaveNormalMapB ("Wave normal map B", 2D) = "bump" {}
+        [HideInInspector] _WaveStrengthC ("Wave strength C", Float) = 1
+        [HideInInspector] _WaveScaleC ("Wave scale C", Float) = 1
+        [HideInInspector] _WaveVelocityC ("Wave velocity C", Vector) = (0, -1, 0, 0)
+        [HideInInspector] _WaveNormalMapC ("Wave normal map C", 2D) = "bump" {}
         [HideInInspector] _TriplanarMapScale ("Triplanar map scale", Float) = 1
         [HideInInspector] _TriplanarSharpness ("Triplanar sharpness", Float) = 1.0
     }
@@ -62,6 +66,10 @@ Shader "Ocean" {
             float _WaveScaleB;
             float2 _WaveVelocityB;
             TEXTURE2D(_WaveNormalMapB); SAMPLER(sampler_WaveNormalMapB);
+            float _WaveStrengthC;
+            float _WaveScaleC;
+            float2 _WaveVelocityC;
+            TEXTURE2D(_WaveNormalMapC); SAMPLER(sampler_WaveNormalMapC);
 
             bool raySphereIntersect(float3 rayOrigin, float3 rayDirection, float3 sphereCenter, float sphereRadius, out float t0, out float t1) {
                 float3 L = sphereCenter - rayOrigin;
@@ -152,12 +160,16 @@ Shader "Ocean" {
                         float3 dnx = SampleNormal(tx * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.x;
                         float3 dny = SampleNormal(ty * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.y;
                         float3 dnz = SampleNormal(tz * _WaveScaleB + _Time.x * _WaveVelocityB, TEXTURE2D_ARGS(_WaveNormalMapB, sampler_WaveNormalMapB), _WaveStrengthB) * bf.z;
+                        float3 enx = SampleNormal(tx * _WaveScaleC + _Time.x * _WaveVelocityC, TEXTURE2D_ARGS(_WaveNormalMapC, sampler_WaveNormalMapC), _WaveStrengthC) * bf.x;
+                        float3 eny = SampleNormal(ty * _WaveScaleC + _Time.x * _WaveVelocityC, TEXTURE2D_ARGS(_WaveNormalMapC, sampler_WaveNormalMapC), _WaveStrengthC) * bf.y;
+                        float3 enz = SampleNormal(tz * _WaveScaleC + _Time.x * _WaveVelocityC, TEXTURE2D_ARGS(_WaveNormalMapC, sampler_WaveNormalMapC), _WaveStrengthC) * bf.z;
                         
-                        float3 normalTS = 0.5 * (cnx + cny + cnz + dnx + dny + dnz);
+                        float3 normalTS = (cnx + cny + cnz + dnx + dny + dnz + enx + eny + enz) / 3;
                         float3 binormal = cross(normalOS, normalTS);
+                        float3 tangent = cross(normalOS, binormal);
 
                         normalOS = normalize(
-		                    normalTS.x * float3(0, 0, 0) +
+		                    normalTS.x * tangent +
 		                    normalTS.y * binormal +
 		                    normalTS.z * normalOS
                         );
