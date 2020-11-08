@@ -18,6 +18,7 @@ namespace SQT
         public GameObject gameObject;
         public Vector3[] positions;
         public Vector3[] normals;
+        public int[] triangles;
         public Mesh mesh;
         public MeshFilter meshFilter;
         public MeshRenderer meshRenderer;

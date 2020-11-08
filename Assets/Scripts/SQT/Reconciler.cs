@@ -73,8 +73,9 @@ namespace SQT
                 }
                 else
                 {
-                    if (node.mesh.triangles != context.triangles[neighborMask].triangles)
+                    if (node.triangles != context.triangles[neighborMask].triangles)
                     {
+                        node.triangles = context.triangles[neighborMask].triangles;
                         node.mesh.triangles = context.triangles[neighborMask].triangles;
                         node.mesh.RecalculateBounds();
                     }
