@@ -1,4 +1,4 @@
-#pragma kernel GenerateMesh
+#pragma kernel GenerateSurface
 
 #include "../Noise.hlsl"
 
@@ -6,10 +6,18 @@ RWStructuredBuffer<float3> positionBuffer;
 RWStructuredBuffer<float3> normalBuffer;
 
 [numthreads(64, 1, 1)]
-void GenerateMesh(uint3 dispatchThreadID : SV_DispatchThreadID) {
+void GenerateSurface(uint3 dispatchThreadID : SV_DispatchThreadID) {
     uint index = dispatchThreadID.x + dispatchThreadID.y * 64;
     float3 position = positionBuffer[index];
     float4 noiseSample = noise(position);
     positionBuffer[index] += normalBuffer[index] * noiseSample.w;
     normalBuffer[index] = normalize(normalBuffer[index] - noiseSample.xyz);
+}
+
+[numthreads(64, 1, 1)]
+void GenerateOcean(uint3 dispatchThreadID : SV_DispatchThreadID) {
+uint index = dispatchThreadID.x + dispatchThreadID.y * 64;
+    float3 position = positionBuffer[index];
+    positionBuffer[index] += normalBuffer[index];
+    normalBuffer[index] = normalBuffer[index];
 }

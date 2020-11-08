@@ -2,7 +2,6 @@ Shader "Ocean" {
     Properties {
         [HideInInspector] _PlanetCenter ("Planet center", Vector) = (0, 0, 0)
         [HideInInspector] _OceanRadius ("Ocean radius", Float) = 0.5
-        [HideInInspector] _DepthMultiplier ("Depth multiplier", Float) = 1
         [HideInInspector] _AlphaMultiplier ("Alpha multiplier", Float) = 1
         [HideInInspector] _ShallowColor ("Shallow color", Color) = (1, 1, 1, 1)
         [HideInInspector] _DeepColor ("Deep color", Color) = (0, 0, 0, 1)
@@ -52,9 +51,7 @@ Shader "Ocean" {
 
             float3 _PlanetCenter;
             float _OceanRadius;
-            float _DepthMultiplier;
             float _AlphaMultiplier;
-            float4 _ShallowColor;
             float4 _DeepColor;
             float _TriplanarMapScale;
             float _TriplanarSharpness;
@@ -183,9 +180,8 @@ Shader "Ocean" {
                     float diffuse = saturate(dot(normalWS, sunDirection));
 
                     float opticalDepth = oceanRayLength + sunRayLength;
-                    float opticalDepth01 = 1 - exp(-opticalDepth * _DepthMultiplier);
                     float alpha = 1 - exp(-opticalDepth * _AlphaMultiplier);
-                    float4 oceanColor = diffuse * lerp(_ShallowColor, _DeepColor, opticalDepth01);
+                    float4 oceanColor = diffuse * _DeepColor;
                     
                     return lerp(color, oceanColor, alpha) + specular;
                 }

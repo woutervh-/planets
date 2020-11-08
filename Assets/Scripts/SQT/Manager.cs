@@ -15,6 +15,7 @@ namespace SQT
         [Range(0f, 1f)]
         public float reconciliationInterval = 0.1f;
         public Material material;
+        public ComputeShader computeShader;
 
 #if UNITY_EDITOR
         public bool debug;
@@ -82,7 +83,7 @@ namespace SQT
 
         void DoUpdate()
         {
-            MeshModifier verticesModifier = new PerlinDisplacementCPU(seed)
+            MeshModifier verticesModifier = new PerlinDisplacementGPU(seed, computeShader)
             {
                 strength = strength,
                 frequency = frequency,
@@ -132,6 +133,7 @@ namespace SQT
                 UnityEngine.Object.Destroy(context.branches[i].gameObject);
                 context.roots[i].Destroy();
             }
+            context.constants.verticesModifier.Destroy();
         }
     }
 }

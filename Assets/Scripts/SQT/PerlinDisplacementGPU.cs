@@ -13,21 +13,22 @@ namespace SQT
         public float lacunarity;
         public float persistence;
         public int octaves;
-        public ComputeShader computeShader;
 
-        Noise.Perlin perlin;
-        Texture2D gradientsTexture;
-        Texture2D permutationTexture;
-        ComputeBuffer positionBuffer;
-        ComputeBuffer normalBuffer;
-        int computeKernel;
+        private ComputeShader computeShader;
+        private Noise.Perlin perlin;
+        private Texture2D gradientsTexture;
+        private Texture2D permutationTexture;
+        private ComputeBuffer positionBuffer;
+        private ComputeBuffer normalBuffer;
+        private int computeKernel;
 
-        public PerlinDisplacementGPU(int seed)
+        public PerlinDisplacementGPU(int seed, ComputeShader computeShader)
         {
+            this.computeShader = computeShader;
             perlin = new Noise.Perlin(seed);
             gradientsTexture = Noise.PerlinTextureGenerator.CreateGradientsTexture(perlin);
             permutationTexture = Noise.PerlinTextureGenerator.CreatePermutationTexture(perlin);
-            computeKernel = computeShader.FindKernel("GenerateMesh");
+            computeKernel = computeShader.FindKernel("GenerateSurface");
         }
 
         public async Task ModifyVertices(Context context, Node node, CancellationTokenSource cancellation)

@@ -821,7 +821,9 @@ MonoBehaviour:
   maxDepth: 10
   resolution: 7
   desiredScreenSpaceLength: 5
+  reconciliationInterval: 0.1
   material: {fileID: 2100000, guid: f02d2cb26757c6049b39c28b41031963, type: 2}
+  computeShader: {fileID: 7200000, guid: f1a42d2b70302e2468098a88733bbe20, type: 3}
   debug: 0
   seed: 25
   strength: 0.12
