@@ -15,18 +15,8 @@ namespace SQT
         [Range(0f, 1f)]
         public float reconciliationInterval = 0.1f;
         public Material material;
-        public ComputeShader computeShader;
 
-#if UNITY_EDITOR
-        public bool debug;
-#endif
-
-        public int seed = 0;
-        public float strength = 0.1f;
-        public float frequency = 1f;
-        public float lacunarity = 2f;
-        public float persistence = 0.5f;
-        public int octaves = 8;
+        public DisplacementSettings displacementSettings;
 
         bool dirty;
         Camera playerCamera;
@@ -83,16 +73,9 @@ namespace SQT
 
         void DoUpdate()
         {
-            MeshModifier verticesModifier = new PerlinDisplacementGPU(seed, computeShader)
-            {
-                strength = strength,
-                frequency = frequency,
-                lacunarity = lacunarity,
-                persistence = persistence,
-                octaves = octaves
-            };
+            MeshModifier meshModifier = displacementSettings.GetMeshModifier();
 
-            verticesModifier.ModifyMaterial(material);
+            meshModifier.ModifyMaterial(material);
 
             Context.Constants constants = new Context.Constants
             {
@@ -101,7 +84,7 @@ namespace SQT
                 material = material,
                 maxDepth = maxDepth,
                 resolution = resolution * 2 - 1, // We can only use odd resolutions.,
-                verticesModifier = verticesModifier
+                meshModifier = meshModifier
             };
 
             Context.Branch[] branches = Context.Branch.GetFromConstants(constants);
@@ -133,7 +116,7 @@ namespace SQT
                 UnityEngine.Object.Destroy(context.branches[i].gameObject);
                 context.roots[i].Destroy();
             }
-            context.constants.verticesModifier.Destroy();
+            context.constants.meshModifier.Destroy();
         }
     }
 }
