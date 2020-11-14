@@ -16,7 +16,7 @@ namespace SQT
         public float reconciliationInterval = 0.1f;
         public Material material;
 
-        public DisplacementSettings displacementSettings;
+        public Displacement.Settings displacementSettings;
 
         bool dirty;
         Camera playerCamera;

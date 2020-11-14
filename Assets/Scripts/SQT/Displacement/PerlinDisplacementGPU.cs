@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SQT
+namespace SQT.Displacement
 {
     public class PerlinDisplacementGPU : MeshModifier
     {
