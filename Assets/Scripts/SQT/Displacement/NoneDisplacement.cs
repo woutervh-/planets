@@ -8,7 +8,7 @@ namespace SQT.Displacement
     {
         public Task ModifyVertices(SQT.Context context, SQT.Node node, CancellationTokenSource cancellation)
         {
-            return Task.FromResult<object>(null);
+            return Task.CompletedTask;
         }
 
         public void ModifyMaterial(Material material)
