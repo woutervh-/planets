@@ -41,6 +41,7 @@ namespace SQT
                 {
                     GameObject gameObject = new GameObject("Branch (" + i + ")");
                     gameObject.transform.SetParent(constants.gameObject.transform, false);
+                    gameObject.layer = constants.gameObject.layer;
                     branches[i] = new Branch
                     {
                         up = directions[i],

@@ -25,6 +25,20 @@ namespace CustomRenderPipeline
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            {
+                CommandBuffer buffer = new CommandBuffer() { name = "Configure" };
+                // buffer.GetTemporaryRT(cameraColorTextureId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+                buffer.GetTemporaryRT(cameraColorTexture1Id, Camera.main.pixelWidth, Camera.main.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+                buffer.GetTemporaryRT(cameraColorTexture2Id, Camera.main.pixelWidth, Camera.main.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+                buffer.GetTemporaryRT(cameraDepthTextureId, Camera.main.pixelWidth, Camera.main.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                buffer.GetTemporaryRT(cameraDepthTexture1Id, Camera.main.pixelWidth, Camera.main.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                buffer.GetTemporaryRT(cameraDepthTexture2Id, Camera.main.pixelWidth, Camera.main.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                buffer.GetTemporaryRT(cameraDepthTexture3Id, Camera.main.pixelWidth, Camera.main.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                context.ExecuteCommandBuffer(buffer);
+                context.Submit();
+                buffer.Release();
+            }
+
             HashSet<Camera> subCameras = new HashSet<Camera>();
             foreach (Camera camera in cameras)
             {
@@ -61,16 +75,6 @@ namespace CustomRenderPipeline
 
                 CommandBuffer buffer = new CommandBuffer() { name = camera.name };
 
-                // buffer.GetTemporaryRT(cameraColorTextureId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-                buffer.GetTemporaryRT(cameraColorTexture1Id, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-                buffer.GetTemporaryRT(cameraColorTexture2Id, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-                buffer.GetTemporaryRT(cameraDepthTextureId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                buffer.GetTemporaryRT(cameraDepthTexture1Id, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                buffer.GetTemporaryRT(cameraDepthTexture2Id, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                buffer.GetTemporaryRT(cameraDepthTexture3Id, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                context.ExecuteCommandBuffer(buffer);
-                buffer.Clear();
-
                 ClearFlag clearFlag = GetClearFlag(camera.clearFlags);
                 if (clearFlag != ClearFlag.None)
                 {
@@ -89,22 +93,44 @@ namespace CustomRenderPipeline
                 buffer.Clear();
 
                 CameraStack stack = camera.GetComponent<CameraStack>();
-                if (stack != null)
+                if (stack != null && stack.enabled)
                 {
-                    CameraRenderer.Render(context, stack.TertiaryCamera, ClearFlag.Depth, cameraColorTexture1Id, cameraDepthTexture3Id);
-                    CameraRenderer.Render(context, stack.SecondaryCamera, ClearFlag.Depth, cameraColorTexture1Id, cameraDepthTexture2Id);
+                    CameraRenderer.Render(context, stack.TertiaryCamera, ClearFlag.None, cameraColorTexture1Id, cameraDepthTexture3Id);
+                    CameraRenderer.Render(context, stack.SecondaryCamera, ClearFlag.None, cameraColorTexture1Id, cameraDepthTexture2Id);
                 }
                 CameraRenderer.Render(context, camera, ClearFlag.Depth, cameraColorTexture1Id, stack != null ? cameraDepthTexture1Id : cameraDepthTextureId);
 
                 context.SetupCameraProperties(camera);
-                if (stack != null)
+                if (stack != null && stack.enabled)
                 {
                     PostProcessing.SetMultipleZBufferParams(buffer, camera, stack.SecondaryCamera, stack.TertiaryCamera);
                     buffer.EnableShaderKeyword(multipleDepthTexturesId);
-                } else {
+                }
+                else
+                {
                     buffer.DisableShaderKeyword(multipleDepthTexturesId);
                 }
-                // PostProcessing.Render(buffer, cameraColorTextureId, cameraDepthTextureId, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget, postProcessingSettings);
+                PostProcessing.RenderOceanPass(buffer, cameraColorTexture1Id, cameraDepthTextureId, cameraColorTexture2Id, BuiltinRenderTextureType.CameraTarget, postProcessingSettings);
+                PostProcessing.RenderAtmospherePass(buffer, cameraColorTexture2Id, cameraDepthTextureId, cameraColorTexture1Id, BuiltinRenderTextureType.CameraTarget, postProcessingSettings);
+                PostProcessing.Blit(buffer, cameraColorTexture1Id, cameraDepthTextureId, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                context.ExecuteCommandBuffer(buffer);
+                context.Submit();
+                buffer.Release();
+            }
+
+            {
+                CommandBuffer buffer = new CommandBuffer() { name = "Post-processing" };
+                CameraStack stack = Camera.main.GetComponent<CameraStack>();
+                context.SetupCameraProperties(Camera.main);
+                if (stack != null && stack.enabled)
+                {
+                    PostProcessing.SetMultipleZBufferParams(buffer, Camera.main, stack.SecondaryCamera, stack.TertiaryCamera);
+                    buffer.EnableShaderKeyword(multipleDepthTexturesId);
+                }
+                else
+                {
+                    buffer.DisableShaderKeyword(multipleDepthTexturesId);
+                }
                 PostProcessing.RenderOceanPass(buffer, cameraColorTexture1Id, cameraDepthTextureId, cameraColorTexture2Id, BuiltinRenderTextureType.CameraTarget, postProcessingSettings);
                 PostProcessing.RenderAtmospherePass(buffer, cameraColorTexture2Id, cameraDepthTextureId, cameraColorTexture1Id, BuiltinRenderTextureType.CameraTarget, postProcessingSettings);
                 PostProcessing.Blit(buffer, cameraColorTexture1Id, cameraDepthTextureId, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
@@ -112,7 +138,6 @@ namespace CustomRenderPipeline
                 buffer.Clear();
                 context.Submit();
 
-                // buffer.ReleaseTemporaryRT(cameraColorTextureId);
                 buffer.ReleaseTemporaryRT(cameraColorTexture1Id);
                 buffer.ReleaseTemporaryRT(cameraColorTexture2Id);
                 buffer.ReleaseTemporaryRT(cameraDepthTextureId);

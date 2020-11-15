@@ -63,34 +63,38 @@ namespace CustomRenderPipeline
                 primaryCamera = GetComponent<Camera>();
                 originalClearFlags = primaryCamera.clearFlags;
                 originalBackgroundColor = primaryCamera.backgroundColor;
-                primaryCamera.clearFlags = CameraClearFlags.Color;
-                primaryCamera.backgroundColor = Color.clear;
+                // primaryCamera.clearFlags = CameraClearFlags.Color;
+                // primaryCamera.backgroundColor = Color.clear;
             }
             if (secondaryGameObject == null)
             {
                 secondaryGameObject = new GameObject(primaryCamera.name + " (secondary)");
                 secondaryGameObject.transform.parent = transform;
+                secondaryGameObject.layer = primaryCamera.gameObject.layer;
             }
             if (tertiaryGameObject == null)
             {
                 tertiaryGameObject = new GameObject(primaryCamera.name + " (tertiary)");
                 tertiaryGameObject.transform.parent = transform;
+                tertiaryGameObject.layer = primaryCamera.gameObject.layer;
             }
             if (secondaryCamera == null)
             {
                 secondaryCamera = secondaryGameObject.AddComponent<Camera>();
                 secondaryCamera.CopyFrom(primaryCamera);
                 secondaryCamera.depth = primaryCamera.depth - 1;
-                secondaryCamera.clearFlags = CameraClearFlags.Color;
-                secondaryCamera.backgroundColor = Color.clear;
+                // secondaryCamera.clearFlags = CameraClearFlags.Color;
+                // secondaryCamera.backgroundColor = Color.clear;
+                secondaryCamera.cullingMask = primaryCamera.cullingMask;
             }
             if (tertiaryCamera == null)
             {
                 tertiaryCamera = tertiaryGameObject.AddComponent<Camera>();
                 tertiaryCamera.CopyFrom(primaryCamera);
                 tertiaryCamera.depth = secondaryCamera.depth - 1;
-                tertiaryCamera.clearFlags = originalClearFlags;
-                tertiaryCamera.backgroundColor = originalBackgroundColor;
+                // tertiaryCamera.clearFlags = originalClearFlags;
+                // tertiaryCamera.backgroundColor = originalBackgroundColor;
+                tertiaryCamera.cullingMask = primaryCamera.cullingMask;
             }
             if (secondaryRenderTexture != null)
             {

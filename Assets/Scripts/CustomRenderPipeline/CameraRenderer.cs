@@ -43,7 +43,7 @@ namespace CustomRenderPipeline
             {
                 perObjectData = PerObjectData.LightData | PerObjectData.LightIndices
             };
-            FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all);
+            FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all, camera.cullingMask);
 
             buffer.SetRenderTarget(
                 targetColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,

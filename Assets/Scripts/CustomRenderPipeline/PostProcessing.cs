@@ -140,6 +140,7 @@ namespace CustomRenderPipeline
         {
             if (oceanSettings.Material == null)
             {
+                DoBlitPass(buffer, CopyMaterial);
                 return;
             }
 

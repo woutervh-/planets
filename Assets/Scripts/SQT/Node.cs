@@ -29,6 +29,7 @@ namespace SQT
         {
             GameObject gameObject = new GameObject("Chunk");
             gameObject.transform.SetParent(branch.gameObject.transform, false);
+            gameObject.layer = branch.gameObject.layer;
             MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
             meshRenderer.enabled = false;
@@ -67,6 +68,7 @@ namespace SQT
 
             GameObject gameObject = new GameObject("Chunk " + string.Join("", path));
             gameObject.transform.SetParent(parent.branch.gameObject.transform, false);
+            gameObject.layer = parent.gameObject.layer;
             MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
             meshRenderer.enabled = false;

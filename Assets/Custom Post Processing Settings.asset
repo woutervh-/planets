@@ -45,4 +45,4 @@ MonoBehaviour:
     WaveNormalMapC: {fileID: 0}
     TriplanarMapScale: 0.01
     TriplanarSharpness: 1
-    Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}
+    Shader: {fileID: 0}
