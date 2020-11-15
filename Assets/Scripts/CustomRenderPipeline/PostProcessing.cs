@@ -111,6 +111,7 @@ namespace CustomRenderPipeline
         {
             if (atmosphereSettings.Material == null)
             {
+                DoBlitPass(buffer, CopyMaterial);
                 return;
             }
 
@@ -140,6 +141,7 @@ namespace CustomRenderPipeline
         {
             if (oceanSettings.Material == null)
             {
+                DoBlitPass(buffer, CopyMaterial);
                 return;
             }
 

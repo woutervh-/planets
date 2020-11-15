@@ -22,7 +22,7 @@ MonoBehaviour:
     AtmosphereWavelengthsMie: {x: 2800, y: 2800, z: 2800, w: 4.2}
     AtmosphereSunIntensity: 13.59
     Precomputed: 1
-    Shader: {fileID: 4800000, guid: 926b4c0f500962447a7f8cb11bce68b5, type: 3}
+    Shader: {fileID: 0}
   OceanSettings:
     PlanetCenter: {x: 0, y: 0, z: 0}
     OceanRadius: 1200
@@ -45,4 +45,4 @@ MonoBehaviour:
     WaveNormalMapC: {fileID: 0}
     TriplanarMapScale: 0.01
     TriplanarSharpness: 1
-    Shader: {fileID: 4800000, guid: 54aac09a4d4bc024ca787c426d0031aa, type: 3}
+    Shader: {fileID: 0}
